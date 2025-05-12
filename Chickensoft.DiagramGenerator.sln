@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chickensoft.DiagramGenerator", "src\Chickensoft.DiagramGenerator\Chickensoft.DiagramGenerator.csproj", "{38BFC799-6709-494F-BE38-4FE564549677}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chickensoft.DiagramGenerator.Sample", "src\Chickensoft.DiagramGenerator.Sample\Chickensoft.DiagramGenerator.Sample.csproj", "{5ED58C24-49B4-4456-A062-A267952D3E9B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chickensoft.DiagramGenerator.Tests", "src\Chickensoft.DiagramGenerator.Tests\Chickensoft.DiagramGenerator.Tests.csproj", "{BEDDD9C3-089E-4EEA-98CB-D8FACD6F54F2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{38BFC799-6709-494F-BE38-4FE564549677}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38BFC799-6709-494F-BE38-4FE564549677}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38BFC799-6709-494F-BE38-4FE564549677}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38BFC799-6709-494F-BE38-4FE564549677}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5ED58C24-49B4-4456-A062-A267952D3E9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5ED58C24-49B4-4456-A062-A267952D3E9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5ED58C24-49B4-4456-A062-A267952D3E9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5ED58C24-49B4-4456-A062-A267952D3E9B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BEDDD9C3-089E-4EEA-98CB-D8FACD6F54F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEDDD9C3-089E-4EEA-98CB-D8FACD6F54F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEDDD9C3-089E-4EEA-98CB-D8FACD6F54F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEDDD9C3-089E-4EEA-98CB-D8FACD6F54F2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

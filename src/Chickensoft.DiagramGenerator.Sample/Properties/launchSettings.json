@@ -1,0 +1,11 @@
+{
+  "profiles": 
+  {
+    "Test": 
+    {
+      "commandName": "Executable",
+      "executablePath": "$(GODOT)",
+      "commandLineArgs": "--path $(ProjectDir) --run-tests --quit-on-finish"
+    }
+  }
+}
