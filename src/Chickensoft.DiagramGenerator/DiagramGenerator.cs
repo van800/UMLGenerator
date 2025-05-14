@@ -3,6 +3,7 @@ namespace Chickensoft.DiagramGenerator;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
@@ -41,23 +42,35 @@ public class DiagramGenerator : IIncrementalGenerator
 
 	private void GenerateDiagram(SourceProductionContext context, GenerationData data)
 	{
+		var hashSet = new HashSet<string>();
 		foreach (var file in data.TscnFiles)
 		{
 			// Get the text of the file.
-			var lines = file.GetText(context.CancellationToken)?.ToString();
-			if (lines == null)
+			var tscnContent = file.GetText(context.CancellationToken)?.ToString();
+			if (tscnContent == null)
 				continue;
 
-			var listener = RunTscnBaseListener(lines);
+			var listener = RunTscnBaseListener(tscnContent, context.ReportDiagnostic, file.Path);
+			var safeClassName = listener.Script?.ClassName.GetSafeName();
+			var linkToFile = listener.Script?.Path.Replace("res://", "");
+			hashSet.Add($"class {safeClassName} {{\n\t[[{linkToFile}]]\n}}");
 		}
+		
+		var source = $"""
+					 @startuml
+					 {string.Join("\n", hashSet)}
+					 @enduml
+					 """;
 		
 		var fileName = "diagram.g.puml";
 		var destFile = Path.Combine(data.ProjectDir, fileName);
+		
+		
 			
-		File.WriteAllText(destFile, "source");
+		File.WriteAllText(destFile, source);
 	}
 	
-	private TscnBaseListener RunTscnBaseListener(string text)
+	private TscnListener RunTscnBaseListener(string text, Action<Diagnostic> reportDiagnostic, string filePath)
 	{
 		var input = new AntlrInputStream(text);
 		var lexer = new TscnLexer(input);
@@ -69,7 +82,7 @@ public class DiagramGenerator : IIncrementalGenerator
 		};
 		parser.AddErrorListener(new ErrorListener());
 		var tree = parser.file();
-		var listener = new TscnListener();
+		var listener = new TscnListener(reportDiagnostic, filePath);
 		ParseTreeWalker.Default.Walk(listener, tree);
 		return listener;
 	}
