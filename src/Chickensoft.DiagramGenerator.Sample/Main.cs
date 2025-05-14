@@ -12,7 +12,7 @@ using Chickensoft.GoDotTest;
 
 public partial class Main : Node2D
 {
-	public Vector2I DesignResolution => Display.UHD4k;
+	public Vector2I DesignResolution => Display.FullHD;
 
 #if DEBUG
 	public TestEnvironment Environment = null!;
@@ -20,6 +20,7 @@ public partial class Main : Node2D
 
 	public override void _Ready()
 	{
+		var test = ConstructorInfo.GetCurrentMethod();
 		GetWindow().LookGood(WindowScaleBehavior.UIFixed, DesignResolution);
 #if DEBUG
 		// If this is a debug build, use GoDotTest to examine the
