@@ -1,12 +1,23 @@
 namespace Chickensoft.DiagramGenerator.Models;
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 
-public class GenerationData(ImmutableArray<AdditionalText> tscnFiles, ImmutableArray<GeneratorSyntaxContext> syntaxContexts, string? projectDir)
+public class GenerationData
 {
-	public ImmutableArray<AdditionalText>  TscnFiles { get; } = tscnFiles;
-	public ImmutableArray<GeneratorSyntaxContext>  SyntaxContexts { get; } = syntaxContexts;
-	public string? ProjectDir { get; } = projectDir;
+	public GenerationData(ImmutableArray<AdditionalText> tscnFiles, ImmutableArray<GeneratorSyntaxContext> syntaxContexts, string projectDir)
+	{
+		ProjectDir = projectDir;
+		TscnFiles = tscnFiles;
+		SyntaxContexts = syntaxContexts
+			.Where(x => 
+				x.Node.SyntaxTree.FilePath.Contains(projectDir));
+	}
+
+	public ImmutableArray<AdditionalText>  TscnFiles { get; }
+	public IEnumerable<GeneratorSyntaxContext> SyntaxContexts { get; }
+	public string? ProjectDir { get; }
 	
 }
