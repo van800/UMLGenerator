@@ -5,8 +5,10 @@ using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using Models;
 using Righthand.GodotTscnParser.Engine.Grammar;
 
 [Generator]
@@ -42,7 +44,7 @@ public class DiagramGenerator : IIncrementalGenerator
 
 	private void GenerateDiagram(SourceProductionContext context, GenerationData data)
 	{
-		var hashSet = new HashSet<string>();
+		Dictionary<string, NodeHierarchy> nodeHierarchyList = [];
 		foreach (var file in data.TscnFiles)
 		{
 			// Get the text of the file.
@@ -51,23 +53,41 @@ public class DiagramGenerator : IIncrementalGenerator
 				continue;
 
 			var listener = RunTscnBaseListener(tscnContent, context.ReportDiagnostic, file.Path);
-			var safeClassName = listener.Script?.ClassName.GetSafeName();
-			var linkToFile = listener.Script?.Path.Replace("res://", "");
-			hashSet.Add($"class {safeClassName} {{\n\t[[{linkToFile}]]\n}}");
+
+			var nodeHierarchy = new NodeHierarchy(listener);
+			nodeHierarchyList.Add(nodeHierarchy.Name, nodeHierarchy);
+			
+			//hashSet.Add($"class {safeClassName} {{\n\t[[{linkToFile}]]\n}}");
 		}
 		
-		var source = $"""
-					 @startuml
-					 {string.Join("\n", hashSet)}
-					 @enduml
-					 """;
-		
-		var fileName = "diagram.g.puml";
-		var destFile = Path.Combine(data.ProjectDir, fileName);
-		
-		
+		foreach (var hierarchy in nodeHierarchyList.Values)
+		{
+			foreach (var child in hierarchy.Node.AllChildren)
+			{
+				if (nodeHierarchyList.TryGetValue(child.Name, out var childNodeHierarchy))
+				{
+					hierarchy.AddConnection(childNodeHierarchy);
+				}
+			}
+		}
+
+		var rootNodes = nodeHierarchyList.Values.Where(x => x.IsRootNode);
+
+		foreach (var node in rootNodes)
+		{
+			var source =
+				$"""
+				 @startuml
+				 {node.GetDiagram()}
+				 @enduml
+				 """;
 			
-		File.WriteAllText(destFile, source);
+			var fileName = node.Name + ".g.puml";
+			var destFile = Path.Combine(data.ProjectDir!, fileName);
+			
+			File.WriteAllText(destFile, source);
+		}
+		
 	}
 	
 	private TscnListener RunTscnBaseListener(string text, Action<Diagnostic> reportDiagnostic, string filePath)
