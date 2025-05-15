@@ -20,11 +20,11 @@ public class ClassHierarchy(GeneratorSyntaxContext ctx) : BaseHierarchy
 	{
 		return 
 		$$"""
-
+		
 		class {{Name}} {
-		[[{{ScriptPath}} ScriptFile]]
+			[[{{ScriptPath}} ScriptFile]]
 		}
-
+		
 		""";
 	}
 }

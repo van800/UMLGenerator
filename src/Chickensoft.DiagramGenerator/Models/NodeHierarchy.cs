@@ -89,36 +89,35 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 					return null;
 				}).Where(x => x != null);
 
-				interfaceMembersString = string.Concat(
+				interfaceMembersString = "\n\t" + string.Join("\n\t",
 					methods.Select(x =>
-						$"\t[[{ScriptPath}:{x?.GetLineNumber()} {x?.Identifier.Value}()]]\n"
+						$"[[{ScriptPath}:{x?.GetLineNumber()} {x?.Identifier.Value}()]]"
 					)
 				);
 			}
 
 			classDefinition = 
 			$$"""
-
+			
 			class {{Name}} {
-				[[{{ScriptPath}} ScriptFile]]
-			{{interfaceMembersString}}
+				[[{{ScriptPath}} ScriptFile]]{{interfaceMembersString}}
 			}
-
+			
 			""";
 		}
 		
 		var packageDefinition = string.Empty;
 		if (DictOfChildren.Count != 0 || _listOfChildContexts.Count != 0)
 		{
-			var childrenDefinitions = string.Concat(
+			var childrenDefinitions = string.Join("\n\t",
 				DictOfChildren.Values.Select(x =>
 					x.GetDiagram()
 				)
 			);
 
-			var childrenRelationships = string.Concat(
+			var childrenRelationships = string.Join("\n\t",
 				DictOfChildren.Values.Select(x =>
-					Name + "-->" + x.Name + ": Is Child\n"
+					$"{Name} --> {x.Name} : Is Child"
 				)
 			);
 			
