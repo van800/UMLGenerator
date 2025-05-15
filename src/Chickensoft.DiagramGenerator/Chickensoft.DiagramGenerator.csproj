@@ -24,9 +24,6 @@
         <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" GeneratePathProperty="true" PrivateAssets="all" />
         <!--Package the generator in the analyzer directory of the nuget package-->
         <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <!--Package references-->
-        <None Include="$(PKGRighthand_GodotTscnParser)\lib\netstandard2.0\Righthand.GodotTscnParser.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <None Include="$(PKGAntlr4_Runtime_Standard)\lib\netstandard2.0\Antlr4.Runtime.Standard.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     </ItemGroup>
 
     <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">
