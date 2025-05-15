@@ -21,15 +21,26 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 	public string? ScriptPath { get; } = listener.Script?.Path.Replace("res://", "");
 	public string? ScenePath { get; } = Path.GetRelativePath(Directory.GetCurrentDirectory(), additionalText.Path);
 
-	public void AddConnection(NodeHierarchy node)
+	private void AddChild(NodeHierarchy node)
 	{
 		_listOfChildren.Add(node);
-		node.AddParent(this);
 	}
 
 	private void AddParent(NodeHierarchy node)
 	{
 		_listOfParents.Add(node);
+	}
+
+	public void GenerateHierarchy(Dictionary<string, NodeHierarchy> nodeHierarchyList)
+	{
+		foreach (var child in Node.AllChildren)
+		{
+			if (!nodeHierarchyList.TryGetValue(child.Name, out var childNodeHierarchy)) 
+				continue;
+			
+			AddChild(childNodeHierarchy);
+			childNodeHierarchy.AddParent(this);
+		}
 	}
 
 	public string GetDiagram()
@@ -43,7 +54,7 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 		
 		if (!string.IsNullOrEmpty(ScriptPath))
 		{
-			var memberString = string.Empty;
+			var interfaceMembersString = string.Empty;
 			
 			if(interfaceName == $"I{Name}")
 			{
@@ -54,7 +65,7 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 					return null;
 				}).Where(x => x != null);
 
-				memberString = string.Concat(
+				interfaceMembersString = string.Concat(
 					methods.Select(x =>
 						x.Identifier.Value + "()\n"
 					)
@@ -67,9 +78,7 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 
 			class {{Name}} {
 				[[{{ScriptPath}} ScriptFile]]
-				{{
-					memberString
-				}}
+				{{interfaceMembersString}}
 			}
 
 			""";
@@ -78,24 +87,24 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 		var packageDefinition = string.Empty;
 		if (ListOfChildren.Count != 0)
 		{
+			var childrenDefinitions = string.Concat(
+				ListOfChildren.Select(x =>
+					x.GetDiagram()
+				)
+			);
+
+			var childrenRelationships = string.Concat(
+				ListOfChildren.Select(x =>
+					Name + "-->" + x.Name + ": Is Child\n"
+				)
+			);
+			
 			packageDefinition +=
 			$$"""
 			
 			package {{Name}}Scene [[{{ScenePath}}]] {
-				{{
-					string.Concat(
-						ListOfChildren.Select(x => 
-							x.GetDiagram()
-						)
-					)
-				}}
-				{{
-					string.Concat(
-						ListOfChildren.Select(x => 
-							Name + "-->" + x.Name + ": Is Child\n" 
-						)
-					)
-				}}
+				{{childrenDefinitions}}
+				{{childrenRelationships}}
 			}
 			
 			""";

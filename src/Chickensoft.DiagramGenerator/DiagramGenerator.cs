@@ -74,13 +74,7 @@ public class DiagramGenerator : IIncrementalGenerator
 		
 		foreach (var hierarchy in nodeHierarchyList.Values)
 		{
-			foreach (var child in hierarchy.Node.AllChildren)
-			{
-				if (nodeHierarchyList.TryGetValue(child.Name, out var childNodeHierarchy))
-				{
-					hierarchy.AddConnection(childNodeHierarchy);
-				}
-			}
+			hierarchy.GenerateHierarchy(nodeHierarchyList);
 		}
 
 		var rootNodes = nodeHierarchyList.Values.Where(x => x.IsRootNode);
