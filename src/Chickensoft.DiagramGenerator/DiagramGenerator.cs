@@ -21,7 +21,7 @@ public class DiagramGenerator : IIncrementalGenerator
 			.Collect();
 
 		var syntaxProvider = context.SyntaxProvider.CreateSyntaxProvider(
-			(node, _) => node is ClassDeclarationSyntax or InterfaceDeclarationSyntax,
+			(node, _) => node is TypeDeclarationSyntax,
 			(syntaxContext, _) => syntaxContext
 		).Collect();
 
@@ -46,7 +46,7 @@ public class DiagramGenerator : IIncrementalGenerator
 
 	private void GenerateDiagram(SourceProductionContext context, GenerationData data)
 	{
-		Dictionary<string, NodeHierarchy> nodeHierarchyList = [];
+		Dictionary<string, BaseHierarchy> nodeHierarchyList = [];
 		foreach (var additionalText in data.TscnFiles)
 		{
 			// Get the text of the file.
@@ -56,19 +56,7 @@ public class DiagramGenerator : IIncrementalGenerator
 
 			var listener = RunTscnBaseListener(tscnContent, context.ReportDiagnostic, additionalText.Path);
 
-			IEnumerable<GeneratorSyntaxContext> syntaxContexts = default;
-			if (listener.Script != null)
-			{
-				syntaxContexts = data.SyntaxContexts
-					.Where(x =>
-					{
-						var sourceFileName = Path.GetFileNameWithoutExtension(x.Node.SyntaxTree.FilePath);
-						var tscnFileName = Path.GetFileNameWithoutExtension(additionalText.Path);
-						return sourceFileName == tscnFileName;
-					});
-			}
-
-			var nodeHierarchy = new NodeHierarchy(listener, additionalText, syntaxContexts);
+			var nodeHierarchy = new NodeHierarchy(listener, additionalText, data.SyntaxContexts);
 			nodeHierarchyList.Add(nodeHierarchy.Name, nodeHierarchy);
 		}
 		
@@ -77,7 +65,7 @@ public class DiagramGenerator : IIncrementalGenerator
 			hierarchy.GenerateHierarchy(nodeHierarchyList);
 		}
 
-		var rootNodes = nodeHierarchyList.Values.Where(x => x.IsRootNode);
+		var rootNodes = nodeHierarchyList.Values.Where(x => x.IsRoot);
 
 		foreach (var node in rootNodes)
 		{
