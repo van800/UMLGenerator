@@ -1,4 +1,4 @@
-﻿namespace Chickensoft.DiagramGenerator
+﻿namespace Chickensoft.DiagramGenerator.Models.Godot
 {
     public class ExtResource
     {

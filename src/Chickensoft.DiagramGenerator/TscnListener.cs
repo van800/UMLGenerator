@@ -9,6 +9,7 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
 using Microsoft.CodeAnalysis;
+using Models.Godot;
 using Righthand.GodotTscnParser.Engine.Grammar;
 using static Righthand.GodotTscnParser.Engine.Grammar.TscnParser;
 
