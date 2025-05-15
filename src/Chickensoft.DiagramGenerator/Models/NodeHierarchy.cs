@@ -91,7 +91,7 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 
 				interfaceMembersString = string.Concat(
 					methods.Select(x =>
-						x?.Identifier.Value + "()\n"
+						$"\t[[{ScriptPath}:{x?.GetLineNumber()} {x?.Identifier.Value}()]]\n"
 					)
 				);
 			}
@@ -101,7 +101,7 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 
 			class {{Name}} {
 				[[{{ScriptPath}} ScriptFile]]
-				{{interfaceMembersString}}
+			{{interfaceMembersString}}
 			}
 
 			""";
