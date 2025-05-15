@@ -75,7 +75,7 @@
         <PackageReference Include="Chickensoft.SuperNodes.Types" Version="1.8.0" />
         <PackageReference Include="Chickensoft.GameTools" Version="2.0.6" />
         <PackageReference Include="BG4G.Core" Version="1.0.3" />
-        <ProjectReference Include="..\Chickensoft.DiagramGenerator\Chickensoft.DiagramGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+        <ProjectReference Include="..\Chickensoft.UMLGenerator\Chickensoft.UMLGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
         <Compile Remove="World\Managers\WorldManager\Logic\States\WorldManagerLogic.State.GenerateBiome.cs" />
         <Compile Remove="Character\Logic\CharacterLogic.Output.cs" />
         <Compile Remove="Character\Logic\CharacterLogic.Input.cs" />

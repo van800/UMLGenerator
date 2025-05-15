@@ -22,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Chickensoft.DiagramGenerator\Chickensoft.DiagramGenerator.csproj"/>
+        <ProjectReference Include="..\Chickensoft.UMLGenerator\Chickensoft.UMLGenerator.csproj" />
     </ItemGroup>
 
 

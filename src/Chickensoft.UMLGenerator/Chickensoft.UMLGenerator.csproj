@@ -11,7 +11,7 @@
         <IsRoslynComponent>true</IsRoslynComponent>
 
         <RootNamespace>Chickensoft.DiagramGenerator</RootNamespace>
-        <PackageId>Chickensoft.DiagramGenerator</PackageId>
+        <PackageId>Chickensoft.UMLGenerator</PackageId>
     </PropertyGroup>
 
     <ItemGroup>
