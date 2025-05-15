@@ -15,18 +15,18 @@ using static Righthand.GodotTscnParser.Engine.Grammar.TscnParser;
 
 public class TscnListener : TscnBaseListener
 {
-    readonly Action<Diagnostic> reportDiagnostic;
-    readonly string fileName;
+    private readonly Action<Diagnostic> _reportDiagnostic;
+    private readonly string _fileName;
+    private Node? _lastNode;
     public Node? RootNode { get; private set; }
     public Script? Script { get; private set; }
-    public Dictionary<string, Script> Scripts { get; } = new Dictionary<string, Script>();
-    public Dictionary<string, SubResource> SubResources { get; } = new Dictionary<string, SubResource>();
-    public Dictionary<string, ExtResource> ExtResources { get; } = new Dictionary<string, ExtResource>();
-    Node? lastNode;
+    public Dictionary<string, Script> Scripts { get; } = new();
+    public Dictionary<string, SubResource> SubResources { get; } = new();
+    public Dictionary<string, ExtResource> ExtResources { get; } = new();
     public TscnListener(Action<Diagnostic> reportDiagnostic, string fileName)
     {
-        this.reportDiagnostic = reportDiagnostic;
-        this.fileName = fileName;
+        _reportDiagnostic = reportDiagnostic;
+        _fileName = fileName;
     }
     public override void ExitNode([NotNull] NodeContext context)
     {
@@ -78,12 +78,12 @@ public class TscnListener : TscnBaseListener
                     if (pairs.TryGetValue("parent", out var parentValue))
                     {
                         string parentPath = parentValue.value().GetString();
-                        Node? parent = lastNode;
+                        Node? parent = _lastNode;
                         if (string.Equals(parentPath, ".", StringComparison.Ordinal))
                         {
                             parent = RootNode;
                         }
-                        else if (!string.Equals(lastNode?.FullName, parentPath, System.StringComparison.Ordinal))
+                        else if (!string.Equals(_lastNode?.FullName, parentPath, System.StringComparison.Ordinal))
                         {
                             while (parent is not null && !string.Equals(parent.FullName, parentPath, System.StringComparison.Ordinal))
                             {
@@ -92,23 +92,23 @@ public class TscnListener : TscnBaseListener
                         }
                         if (parent is not null)
                         {
-                            lastNode = new Node(name!, type!, parent, parentPath, subResources, groups);
-                            parent.Children.Add(lastNode);
+                            _lastNode = new Node(name!, type!, parent, parentPath, subResources, groups);
+                            parent.Children.Add(_lastNode);
                         }
                         else
                         {
-                            reportDiagnostic(Diagnostic.Create(
+                            _reportDiagnostic(Diagnostic.Create(
                                 new DiagnosticDescriptor(
                                     "GTSG0002",
-                                    $"TSCN parsing error on {fileName}",
-                                    $"File {fileName}: Could not find parent node for node {name} with parent path {parentPath}",
+                                    $"TSCN parsing error on {_fileName}",
+                                    $"File {_fileName}: Could not find parent node for node {name} with parent path {parentPath}",
                                     "Parsing tscn",
                                     DiagnosticSeverity.Warning, true), null));
                         }
                     }
                     else if (script is not null)
                     {
-                        RootNode = lastNode = new Node(name!, type!, null, null, subResources, groups);
+                        RootNode = _lastNode = new Node(name!, type!, null, null, subResources, groups);
                         Script = script;
                     }
                 }

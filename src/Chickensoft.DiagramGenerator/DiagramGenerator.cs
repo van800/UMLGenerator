@@ -4,27 +4,26 @@ using System.IO;
 using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Models;
 using Righthand.GodotTscnParser.Engine.Grammar;
 
 [Generator]
 public class DiagramGenerator : IIncrementalGenerator
 {
-	public record GenerationData(ImmutableArray<AdditionalText> TscnFiles, string? ProjectDir)
-	{
-		public ImmutableArray<AdditionalText> TscnFiles { get; } = TscnFiles;
-		public string? ProjectDir { get; } = ProjectDir;
-	}
-
 	public void Initialize(IncrementalGeneratorInitializationContext context)
 	{
 		var tscnProvider = context.AdditionalTextsProvider
 			.Where(f => Path.GetExtension(f.Path).Equals(".tscn", StringComparison.OrdinalIgnoreCase))
 			.Collect();
+
+		var syntaxProvider = context.SyntaxProvider.CreateSyntaxProvider(
+			(node, _) => node is ClassDeclarationSyntax or InterfaceDeclarationSyntax,
+			(syntaxContext, _) => syntaxContext
+		).Collect();
 
 		var projectDirProvider = context.AnalyzerConfigOptionsProvider
 			.Select((optionsProvider, _) =>
@@ -35,9 +34,12 @@ public class DiagramGenerator : IIncrementalGenerator
 				return projectDir ?? Directory.GetCurrentDirectory();
 			});
 
-		var finalProvider = tscnProvider.Combine(projectDirProvider).Select((x, _) => 
-			new GenerationData(x.Left, x.Right)
-		);
+		var finalProvider = tscnProvider
+			.Combine(syntaxProvider)
+			.Combine(projectDirProvider)
+			.Select((x, _) => 
+				new GenerationData(x.Left.Left, x.Left.Right, x.Right)
+			);
 
 		context.RegisterImplementationSourceOutput(finalProvider, GenerateDiagram);
 	}
@@ -45,19 +47,29 @@ public class DiagramGenerator : IIncrementalGenerator
 	private void GenerateDiagram(SourceProductionContext context, GenerationData data)
 	{
 		Dictionary<string, NodeHierarchy> nodeHierarchyList = [];
-		foreach (var file in data.TscnFiles)
+		foreach (var additionalText in data.TscnFiles)
 		{
 			// Get the text of the file.
-			var tscnContent = file.GetText(context.CancellationToken)?.ToString();
+			var tscnContent = additionalText.GetText(context.CancellationToken)?.ToString();
 			if (tscnContent == null)
 				continue;
 
-			var listener = RunTscnBaseListener(tscnContent, context.ReportDiagnostic, file.Path);
+			var listener = RunTscnBaseListener(tscnContent, context.ReportDiagnostic, additionalText.Path);
 
-			var nodeHierarchy = new NodeHierarchy(listener);
+			IEnumerable<GeneratorSyntaxContext> syntaxContexts = default;
+			if (listener.Script != null)
+			{
+				syntaxContexts = data.SyntaxContexts
+					.Where(x =>
+					{
+						var sourceFileName = Path.GetFileNameWithoutExtension(x.Node.SyntaxTree.FilePath);
+						var tscnFileName = Path.GetFileNameWithoutExtension(additionalText.Path);
+						return sourceFileName == tscnFileName;
+					});
+			}
+
+			var nodeHierarchy = new NodeHierarchy(listener, additionalText, syntaxContexts);
 			nodeHierarchyList.Add(nodeHierarchy.Name, nodeHierarchy);
-			
-			//hashSet.Add($"class {safeClassName} {{\n\t[[{linkToFile}]]\n}}");
 		}
 		
 		foreach (var hierarchy in nodeHierarchyList.Values)
