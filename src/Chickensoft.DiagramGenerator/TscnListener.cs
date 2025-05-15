@@ -66,7 +66,7 @@ public class TscnListener : TscnBaseListener
                     if (pairs.TryGetValue("groups", out var groupsValue))
                     {
                         var groupStrings =
-                            from cv in groupsValue.complexValueArray()?.complexValue()
+                            from cv in groupsValue.value().complexValueArray()?.complexValue()
                             let g = cv.value()?.GetString()
                             where !string.IsNullOrWhiteSpace(g)
                             select g;

@@ -20,7 +20,8 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
-        <PackageReference Include="Righthand.GodotTscnParser" Version="1.0.0-beta.1" GeneratePathProperty="true" PrivateAssets="all" />
+<!--    <PackageReference Include="Righthand.GodotTscnParser" Version="1.0.0-beta.1" GeneratePathProperty="true" PrivateAssets="all" />-->
+        <ProjectReference Include="..\..\..\godot-tscn-parser\src\GodotTscnParser\GodotTscnParser.Engine\GodotTscnParser.Engine.csproj" GeneratePathProperty="true" PrivateAssets="all" />
         <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" GeneratePathProperty="true" PrivateAssets="all" />
         <!--Package the generator in the analyzer directory of the nuget package-->
         <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
@@ -32,7 +33,8 @@
 
     <Target Name="GetDependencyTargetPaths" Condition=" '$(Configuration)'=='Debug' ">
         <ItemGroup>
-            <TargetPathWithTargetPlatformMoniker Include="$(PKGRighthand_GodotTscnParser)\lib\netstandard2.0\Righthand.GodotTscnParser.dll" IncludeRuntimeDependency="false" />
+<!--        <TargetPathWithTargetPlatformMoniker Include="$(PKGRighthand_GodotTscnParser)\lib\netstandard2.0\Righthand.GodotTscnParser.dll" IncludeRuntimeDependency="false" />-->
+            <TargetPathWithTargetPlatformMoniker Include="..\..\..\godot-tscn-parser\src\GodotTscnParser\GodotTscnParser.Engine\bin\Debug\netstandard2.0\Righthand.GodotTscnParser.dll" IncludeRuntimeDependency="false" />
             <TargetPathWithTargetPlatformMoniker Include="$(PKGAntlr4_Runtime_Standard)\lib\netstandard2.0\Antlr4.Runtime.Standard.dll" IncludeRuntimeDependency="false" />
         </ItemGroup>
     </Target>
