@@ -11,11 +11,9 @@ public abstract class BaseHierarchy
 	
 	private Dictionary<string, BaseHierarchy> _dictOfChildren = [];
 	private Dictionary<string, BaseHierarchy> _dictOfParents = [];
-	protected List<GeneratorSyntaxContext> _listOfChildContexts = [];
 	
 	public IReadOnlyDictionary<string, BaseHierarchy> DictOfChildren => _dictOfChildren;
 	public IReadOnlyDictionary<string, BaseHierarchy> DictOfParents => _dictOfParents;
-	public IReadOnlyCollection<GeneratorSyntaxContext> ListOfChildContexts => _listOfChildContexts;
 
 	public abstract void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList);
 	public abstract string GetDiagram();

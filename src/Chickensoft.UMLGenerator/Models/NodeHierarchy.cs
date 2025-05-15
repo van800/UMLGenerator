@@ -38,6 +38,8 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 			childNodeHierarchy.AddParent(this);
 		}
 
+		var listOfChildContexts = new List<GeneratorSyntaxContext>();
+
 		if (ClassSyntax != null)
 		{
 			foreach (var property in ClassSyntax.Members.OfType<PropertyDeclarationSyntax>())
@@ -50,13 +52,13 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 						return sourceFileName == type && !DictOfChildren.ContainsKey(type);
 					});
 				
-				_listOfChildContexts.AddRange(childContexts);
+				listOfChildContexts.AddRange(childContexts);
 			}
 		}
 
-		if (_listOfChildContexts.Count != 0)
+		if (listOfChildContexts.Count != 0)
 		{
-			foreach (var ctx in _listOfChildContexts)
+			foreach (var ctx in listOfChildContexts)
 			{
 				var className = Path.GetFileNameWithoutExtension(ctx.SemanticModel.SyntaxTree.FilePath);
 				if (!nodeHierarchyList.TryGetValue(className, out var childNodeHierarchy))
@@ -108,7 +110,7 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 		}
 		
 		var packageDefinition = string.Empty;
-		if (DictOfChildren.Count != 0 || _listOfChildContexts.Count != 0)
+		if (DictOfChildren.Count != 0)
 		{
 			var childrenDefinitions = string.Join("\n\t",
 				DictOfChildren.Values.Select(x =>
