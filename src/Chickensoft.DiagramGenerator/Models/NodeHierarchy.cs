@@ -82,15 +82,16 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 			
 			if(InterfaceSyntax != null)
 			{
-				var methods = InterfaceSyntax.Members.Select(x =>
-				{
-					if (x is MethodDeclarationSyntax stx)
-						return stx;
-					return null;
-				}).Where(x => x != null);
+				var classMethods = 
+					from interfaceMember in InterfaceSyntax.Members
+					from classMember in ClassSyntax.Members
+					where classMember is MethodDeclarationSyntax classMethod &&
+					      interfaceMember is MethodDeclarationSyntax interfaceMethod &&
+					      classMethod.Identifier.Value == interfaceMethod.Identifier.Value
+					select classMember as MethodDeclarationSyntax;
 
 				interfaceMembersString = "\n\t" + string.Join("\n\t",
-					methods.Select(x =>
+					classMethods.Select(x =>
 						$"[[{ScriptPath}:{x?.GetLineNumber()} {x?.Identifier.Value}()]]"
 					)
 				);
