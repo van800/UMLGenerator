@@ -91,7 +91,7 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 
 				interfaceMembersString = string.Concat(
 					methods.Select(x =>
-						x.Identifier.Value + "()\n"
+						x?.Identifier.Value + "()\n"
 					)
 				);
 			}
