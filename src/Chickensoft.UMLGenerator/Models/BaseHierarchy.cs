@@ -24,8 +24,8 @@ public abstract class BaseHierarchy(IEnumerable<GeneratorSyntaxContext> syntaxCo
 	
 	public bool IsRoot => DictOfParents.Count == 0;
 	public abstract string FilePath { get; }
+	public abstract string ScriptPath { get; }
 	public string Name => Path.GetFileNameWithoutExtension(FilePath);
-	public virtual string ScriptPath => FilePath.Replace(Directory.GetCurrentDirectory(), "");
 	
 	private Dictionary<string, BaseHierarchy> _dictOfChildren = [];
 	private Dictionary<string, BaseHierarchy> _dictOfParents = [];
@@ -138,7 +138,7 @@ public abstract class BaseHierarchy(IEnumerable<GeneratorSyntaxContext> syntaxCo
 		return 
 		$$"""
 
-		package {{Name}}Scene [[{{ScriptPath}}]] {
+		package {{Name}}Scene [[{{FilePath}}]] {
 			{{childrenDefinitions}}
 			{{childrenRelationships}}
 		}

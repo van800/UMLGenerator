@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis;
 public class NodeHierarchy(TscnListener listener, AdditionalText additionalText, IEnumerable<GeneratorSyntaxContext> syntaxContexts) : BaseHierarchy(syntaxContexts)
 {
 	public Node Node { get; } = listener.RootNode!;
-	public override string? FilePath { get; } = additionalText.Path;
+	public override string? FilePath { get; } = additionalText.Path.Replace(Directory.GetCurrentDirectory(), "");
 	public override string ScriptPath { get; } = listener.Script?.Path.Replace("res://", "");
 
 	public override void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList)

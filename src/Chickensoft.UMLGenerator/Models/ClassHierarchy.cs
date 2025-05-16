@@ -9,6 +9,7 @@ public class ClassHierarchy(IGrouping<string, GeneratorSyntaxContext> contextGro
 {
 	public List<GeneratorSyntaxContext> ContextList { get; } = contextGrouping.ToList();
 	public override string FilePath => contextGrouping.Key;
+	public override string ScriptPath => FilePath.Replace(Directory.GetCurrentDirectory(), "");
 
 	public override void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList)
 	{
