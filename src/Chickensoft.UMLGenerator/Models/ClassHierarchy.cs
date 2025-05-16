@@ -2,29 +2,30 @@ namespace Chickensoft.DiagramGenerator.Models.Godot;
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-public class ClassHierarchy(GeneratorSyntaxContext ctx) : BaseHierarchy
+public class ClassHierarchy(IGrouping<string, GeneratorSyntaxContext> contextGrouping, IEnumerable<GeneratorSyntaxContext> syntaxContexts) : BaseHierarchy(syntaxContexts)
 {
-	public ClassDeclarationSyntax? ClassSyntax => ctx.Node as ClassDeclarationSyntax;
-	public override string Name => (ctx.Node as TypeDeclarationSyntax)!.Identifier.ToString();
-	public override string ScriptPath => ctx.SemanticModel.SyntaxTree.FilePath.Replace(Directory.GetCurrentDirectory(), "");
+	public List<GeneratorSyntaxContext> ContextList { get; } = contextGrouping.ToList();
+	public override string FilePath => contextGrouping.Key;
 
 	public override void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList)
 	{
-		
+		var propertyDeclarations = GetPropertyDeclarations();
+		foreach (var ctx in propertyDeclarations)
+		{
+			var className = Path.GetFileNameWithoutExtension(ctx.SemanticModel.SyntaxTree.FilePath);
+			if (!nodeHierarchyList.TryGetValue(className, out var childNodeHierarchy)) 
+				continue;
+			
+			AddChild(childNodeHierarchy);
+			childNodeHierarchy.AddParent(this);
+		}
 	}
 
 	public override string GetDiagram()
 	{
-		return 
-		$$"""
-		
-		class {{Name}} {
-			[[{{ScriptPath}} ScriptFile]]
-		}
-		
-		""";
+		return GetClassDefinition();
 	}
 }

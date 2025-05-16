@@ -9,6 +9,7 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Models;
+using Models.Godot;
 using Righthand.GodotTscnParser.Engine.Grammar;
 
 [Generator]
@@ -46,35 +47,50 @@ public class DiagramGenerator : IIncrementalGenerator
 
 	private void GenerateDiagram(SourceProductionContext context, GenerationData data)
 	{
-		Dictionary<string, BaseHierarchy> nodeHierarchyList = [];
+		Dictionary<string, BaseHierarchy> hierarchyList = [];
 		foreach (var additionalText in data.TscnFiles)
 		{
-			// Get the text of the file.
 			var tscnContent = additionalText.GetText(context.CancellationToken)?.ToString();
-			if (tscnContent == null)
+			if (string.IsNullOrWhiteSpace(tscnContent))
 				continue;
 
-			var listener = RunTscnBaseListener(tscnContent, context.ReportDiagnostic, additionalText.Path);
+			var listener = RunTscnBaseListener(tscnContent!, context.ReportDiagnostic, additionalText.Path);
 
 			var nodeHierarchy = new NodeHierarchy(listener, additionalText, data.SyntaxContexts);
-			nodeHierarchyList.Add(nodeHierarchy.Name, nodeHierarchy);
-		}
-		
-		foreach (var hierarchy in nodeHierarchyList.Values)
-		{
-			hierarchy.GenerateHierarchy(nodeHierarchyList);
+			hierarchyList.Add(nodeHierarchy.Name, nodeHierarchy);
 		}
 
-		var rootNodes = nodeHierarchyList.Values.Where(x => x.IsRoot);
+		foreach (var syntaxContextGrouping in data.SyntaxContexts
+			         .Where(x => x.Node is ClassDeclarationSyntax)
+			         .GroupBy(x => x.SemanticModel.SyntaxTree.FilePath))
+		{
+			var name = Path.GetFileNameWithoutExtension(syntaxContextGrouping.Key);
+			if (!hierarchyList.TryGetValue(name, out var nodeHierarchy))
+			{
+				var classHierarchy = new ClassHierarchy(syntaxContextGrouping, data.SyntaxContexts);
+				hierarchyList.Add(classHierarchy.Name, classHierarchy);
+			}
+			else
+			{
+				nodeHierarchy.AddContextList(syntaxContextGrouping.ToList());
+			}
+		}
+		
+		foreach (var hierarchy in hierarchyList.Values)
+		{
+			hierarchy.GenerateHierarchy(hierarchyList);
+		}
+
+		var rootNodes = hierarchyList.Values.OfType<NodeHierarchy>().Where(x => x.IsRoot);
 
 		foreach (var node in rootNodes)
 		{
 			var source =
-				$"""
-				 @startuml
-				 {node.GetDiagram()}
-				 @enduml
-				 """;
+			$"""
+			@startuml
+			{node.GetDiagram()}
+			@enduml
+			""";
 			
 			var fileName = node.Name + ".g.puml";
 			var destFile = Path.Combine(data.ProjectDir!, fileName);
