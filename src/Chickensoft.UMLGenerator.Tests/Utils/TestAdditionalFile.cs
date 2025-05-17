@@ -2,7 +2,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Chickensoft.DiagramGenerator.Tests.Utils;
+namespace Chickensoft.UMLGenerator.Tests.Utils;
 
 public class TestAdditionalFile : AdditionalText
 {

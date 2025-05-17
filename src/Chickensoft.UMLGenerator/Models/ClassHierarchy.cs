@@ -1,4 +1,4 @@
-namespace Chickensoft.DiagramGenerator.Models.Godot;
+namespace Chickensoft.UMLGenerator.Models.Godot;
 
 using System.Collections.Generic;
 using System.IO;

@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Antlr4.Runtime.Misc;
 
-namespace Chickensoft.DiagramGenerator;
+namespace Chickensoft.UMLGenerator;
 
 public static class Extensions
 {

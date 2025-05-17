@@ -1,4 +1,4 @@
-﻿namespace Chickensoft.DiagramGenerator;
+﻿namespace Chickensoft.UMLGenerator;
 
 public sealed class Script
 {

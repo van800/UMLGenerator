@@ -1,4 +1,4 @@
-﻿namespace Chickensoft.DiagramGenerator.Sample;
+﻿namespace Chickensoft.UMLGenerator.Sample;
 
 using System;
 using Godot;

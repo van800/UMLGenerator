@@ -1,4 +1,4 @@
-namespace Chickensoft.DiagramGenerator.Models;
+namespace Chickensoft.UMLGenerator.Models;
 
 using System;
 using System.Collections.Generic;

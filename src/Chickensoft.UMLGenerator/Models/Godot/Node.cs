@@ -1,4 +1,4 @@
-﻿namespace Chickensoft.DiagramGenerator.Models.Godot;
+﻿namespace Chickensoft.UMLGenerator.Models.Godot;
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,9 +14,7 @@ public class Node
     public HashSet<string> Groups { get; }
     public Node? Parent {  get; }
     public List<Node> Children { get; }
-    public ImmutableDictionary<string, SubResource> SubResources { get; }
     public Node(string name, string type, Node? parent, string? parentPath,
-        ImmutableDictionary<string, SubResource>? subResources = null,
         HashSet<string>? groups = null)
     {
         Name = name;
@@ -25,7 +23,6 @@ public class Node
         ParentPath = parentPath;
         Groups = groups ?? new HashSet<string>();
         Children= new List<Node>();
-        SubResources = subResources ?? ImmutableDictionary<string, SubResource>.Empty;
     }
 
     public string FullName => !string.IsNullOrWhiteSpace(ParentPath) && ParentPath != "."

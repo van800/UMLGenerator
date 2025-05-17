@@ -2,11 +2,13 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Chickensoft.DiagramGenerator.Tests.Utils;
+using Chickensoft.UMLGenerator.Tests.Utils;
 using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 
-namespace Chickensoft.DiagramGenerator.Tests;
+namespace Chickensoft.UMLGenerator.Tests;
+
+using Utils;
 
 public class UmlGeneratorTests
 {

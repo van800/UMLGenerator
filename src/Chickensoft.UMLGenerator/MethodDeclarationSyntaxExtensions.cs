@@ -1,4 +1,4 @@
-namespace Chickensoft.DiagramGenerator;
+namespace Chickensoft.UMLGenerator;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 

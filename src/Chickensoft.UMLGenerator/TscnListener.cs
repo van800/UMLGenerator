@@ -1,4 +1,4 @@
-﻿namespace Chickensoft.DiagramGenerator;
+﻿namespace Chickensoft.UMLGenerator;
 
 using System;
 using System.Collections.Generic;
@@ -21,13 +21,13 @@ public class TscnListener : TscnBaseListener
     public Node? RootNode { get; private set; }
     public Script? Script { get; private set; }
     public Dictionary<string, Script> Scripts { get; } = new();
-    public Dictionary<string, SubResource> SubResources { get; } = new();
     public Dictionary<string, ExtResource> ExtResources { get; } = new();
     public TscnListener(Action<Diagnostic> reportDiagnostic, string fileName)
     {
         _reportDiagnostic = reportDiagnostic;
         _fileName = fileName;
     }
+    
     public override void ExitNode([NotNull] NodeContext context)
     {
         var pairs = context.complexPair().GetComplexPairs();
@@ -53,20 +53,12 @@ public class TscnListener : TscnBaseListener
                 }
                 if (!string.IsNullOrEmpty(type))
                 {
-                    // do not add root node as node
-                    var complexPairs = context.complexPair().GetComplexPairs();
                     //var subResourceReferences = pairs.Where(p => )
-                    var subResourceRefs = ExtractSubResourceReferences(complexPairs);
-                    var subResources = subResourceRefs.Select(sr => new
-                    {
-                        Name = sr.Key,
-                        SubResource = SubResources[sr.Value],
-                    }).ToImmutableDictionary(p => p.Name, p => p.SubResource);
                     HashSet<string> groups = new HashSet<string>();
                     if (pairs.TryGetValue("groups", out var groupsValue))
                     {
                         var groupStrings =
-                            from cv in groupsValue.value().complexValueArray()?.complexValue()
+                            from cv in groupsValue.complexValueArray()?.complexValue()
                             let g = cv.value()?.GetString()
                             where !string.IsNullOrWhiteSpace(g)
                             select g;
@@ -92,7 +84,7 @@ public class TscnListener : TscnBaseListener
                         }
                         if (parent is not null)
                         {
-                            _lastNode = new Node(name!, type!, parent, parentPath, subResources, groups);
+                            _lastNode = new Node(name!, type!, parent, parentPath, groups);
                             parent.Children.Add(_lastNode);
                         }
                         else
@@ -108,7 +100,7 @@ public class TscnListener : TscnBaseListener
                     }
                     else if (script is not null)
                     {
-                        RootNode = _lastNode = new Node(name!, type!, null, null, subResources, groups);
+                        RootNode = _lastNode = new Node(name!, type!, null, null, groups);
                         Script = script;
                     }
                 }
@@ -184,47 +176,6 @@ public class TscnListener : TscnBaseListener
         base.EnterExtResource(context);
     }
 
-    public override void ExitSubResource([NotNull] SubResourceContext context)
-    {
-        var pairs = context.pair().GetStringPairs();
-        if (pairs.TryGetValue("id", out var id) && pairs.TryGetValue("type", out var type))
-        {
-            if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(type))
-            {
-                var complexPairs = context.complexPair().GetComplexPairs();
-                var animations = ExtractAnimations(complexPairs);
-                var subResource = new SubResource(id, type, animations);
-                SubResources.Add(id, subResource);
-            }
-        }
-        base.ExitSubResource(context);
-    }
-
-    public static ImmutableArray<Animation> ExtractAnimations(
-        ImmutableDictionary<string, ComplexValueContext> complexPairs)
-    {
-        var animations = new List<Animation>();
-        if (complexPairs.TryGetValue("animations", out var animationsContext))
-        {
-            var objectArray = animationsContext.objectArray();
-            if (objectArray is not null)
-            {
-                foreach (var o in objectArray.@object())
-                {
-                    foreach (var p in o.property())
-                    {
-                        if (p.propertyName().GetString() == "name")
-                        {
-                            var reference = p.complexValue().value().@ref().propertyName().GetString();
-                            animations.Add(new Animation(reference));
-                        }
-                    }
-                }
-            }
-        }
-        return animations.ToImmutableArray();
-    }
-
     public static string GetClassName(string fileName)
     {
         string rawName = Path.GetFileNameWithoutExtension(fileName);
@@ -246,20 +197,21 @@ public static class ListenerExtensions
 {
     internal static ImmutableDictionary<string, string> GetStringPairs(this PairContext[] context)
         => context.EnumerateStringPairs().ToImmutableDictionary(p => p.Key, p => p.Value);
+    
     internal static IEnumerable<KeyValuePair<string, string>> EnumerateStringPairs(this PairContext[] context)
     {
         foreach (var p in context)
         {
-            // checks if value is string
-            var terminal = p.value().children[0] as TerminalNodeImpl;
-            if (terminal != null && terminal.Symbol.Type == STRING)
+            var terminal = p.children[1] as TerminalNodeImpl;
+            if (terminal != null && terminal.Symbol.Type == T__15)
             {
-                yield return new(p.children[0].GetText(), terminal.Symbol.Text.Trim('\"'));
+                yield return new(p.children[0].GetText(), p.children[2].GetText().Trim('\"'));
             }
         }
     }
     internal static ImmutableDictionary<string, ComplexValueContext> GetComplexPairs(this ComplexPairContext[] context)
         => context.EnumerateComplexPairs().ToImmutableDictionary(p => p.Key, p => p.Value);
+   
     internal static IEnumerable<KeyValuePair<string, ComplexValueContext>> EnumerateComplexPairs(
         this ComplexPairContext[] context)
     {
@@ -267,14 +219,9 @@ public static class ListenerExtensions
         {
             string name = p.complexPairName().GetText();
             yield return new(name, p.complexValue());
-            // checks if value is string
-            //var terminal = p.value().children[0] as TerminalNodeImpl;
-            //if (terminal != null && terminal.Symbol.Type == STRING)
-            //{
-            //    yield return new(p.children[0].GetText(), terminal.Symbol.Text.Trim('\"'));
-            //}
         }
     }
+    
     internal static string GetString(this RuleContext context)
     {
         var terminal = context.GetChild(0) as TerminalNodeImpl;

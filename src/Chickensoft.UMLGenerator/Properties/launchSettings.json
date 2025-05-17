@@ -3,7 +3,7 @@
   "profiles": {
     "DebugRoslynSourceGenerator": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "../Chickensoft.DiagramGenerator.Sample/Chickensoft.DiagramGenerator.Sample.csproj"
+      "targetProject": "../Chickensoft.UMLGenerator.Sample/Chickensoft.UMLGenerator.Sample.csproj"
     }
   }
 }
