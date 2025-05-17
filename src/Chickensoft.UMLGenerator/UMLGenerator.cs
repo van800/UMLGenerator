@@ -13,7 +13,7 @@ using Models.Godot;
 using Righthand.GodotTscnParser.Engine.Grammar;
 
 [Generator]
-public class DiagramGenerator : IIncrementalGenerator
+public class UMLGenerator : IIncrementalGenerator
 {
 	public void Initialize(IncrementalGeneratorInitializationContext context)
 	{

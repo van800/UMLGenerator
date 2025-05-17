@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Chickensoft.DiagramGenerator.Tests;
 
-public class DiagramGeneratorTests
+public class UmlGeneratorTests
 {
 	private const string _tscnText =
 		"""
@@ -59,7 +59,7 @@ public class DiagramGeneratorTests
 	public void TestGenerateDiagramFile()
 	{
 		// Create an instance of the source generator.
-		var generator = new DiagramGenerator();
+		var generator = new UMLGenerator();
 
 		// Source generators should be tested using 'GeneratorDriver'.
 		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
@@ -71,7 +71,7 @@ public class DiagramGeneratorTests
 		);
 
 		// To run generators, we can use an empty compilation.
-		var compilation = CSharpCompilation.Create(nameof(DiagramGeneratorTests));
+		var compilation = CSharpCompilation.Create(nameof(UmlGeneratorTests));
 
 		// Run generators. Don't forget to use the new compilation rather than the previous one.
 		driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
