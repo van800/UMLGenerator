@@ -4,7 +4,7 @@
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
-        <RootNamespace>Chickensoft.DiagramGenerator.Sample</RootNamespace>
+        <RootNamespace>Chickensoft.UMLGenerator.Sample</RootNamespace>
         <!-- Required for some nuget packages to work -->
         <!-- godotengine/godot/issues/42271#issuecomment-751423827 -->
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -13,9 +13,9 @@
         <!-- <CompilerGeneratedFilesOutputPath>.generated</CompilerGeneratedFilesOutputPath> -->
         <DebugType>portable</DebugType>
         <DebugSymbols>true</DebugSymbols>
-        <Title>Chickensoft.DiagramGenerator.Sample</Title>
+        <Title>Chickensoft.UMLGenerator.Sample</Title>
         <Version>1.0.0</Version>
-        <Description>Chickensoft.DiagramGenerator.Sample</Description>
+        <Description>Chickensoft.UMLGenerator.Sample</Description>
         <Copyright>© 2024 Bastani</Copyright>
         <Authors>Bastani</Authors>
         <Company>Bastani</Company>
@@ -75,9 +75,8 @@
         <PackageReference Include="Chickensoft.SuperNodes.Types" Version="1.8.0" />
         <PackageReference Include="Chickensoft.GameTools" Version="2.0.6" />
         <PackageReference Include="BG4G.Core" Version="1.0.3" />
-        <ProjectReference Include="..\Chickensoft.UMLGenerator\Chickensoft.UMLGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-        <Compile Remove="World\Managers\WorldManager\Logic\States\WorldManagerLogic.State.GenerateBiome.cs" />
-        <Compile Remove="Character\Logic\CharacterLogic.Output.cs" />
-        <Compile Remove="Character\Logic\CharacterLogic.Input.cs" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Chickensoft.UMLGenerator\Chickensoft.UMLGenerator.csproj" PrivateAssets="all" OutputItemType="Analyzer" />
     </ItemGroup>
 </Project>

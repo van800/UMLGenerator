@@ -22,7 +22,6 @@ public abstract class BaseHierarchy(IEnumerable<GeneratorSyntaxContext> syntaxCo
 	public InterfaceDeclarationSyntax? InterfaceSyntax => LocalSyntaxContexts.Select(x => x.Node)
 		.FirstOrDefault(x => x is InterfaceDeclarationSyntax ctx && ctx.Identifier.Value?.ToString() == $"I{Name}") as InterfaceDeclarationSyntax;
 	
-	public bool IsRoot => DictOfParents.Count == 0;
 	public abstract string FilePath { get; }
 	public abstract string ScriptPath { get; }
 	public string Name => Path.GetFileNameWithoutExtension(FilePath);
@@ -36,6 +35,15 @@ public abstract class BaseHierarchy(IEnumerable<GeneratorSyntaxContext> syntaxCo
 
 	public abstract void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList);
 	public abstract string GetDiagram();
+
+	public bool HasUMLAttribute()
+	{
+		var attributes = LocalSyntaxContexts
+			.Select(x => (x.Node as TypeDeclarationSyntax).AttributeLists.SelectMany(x => x.Attributes))
+			.SelectMany(x => x);
+		
+		return attributes.Any(x => x.Name.ToString() == "GenerateUML");
+	}
 
 	internal void AddChild(BaseHierarchy node)
 	{

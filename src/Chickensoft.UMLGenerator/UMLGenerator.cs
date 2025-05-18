@@ -9,7 +9,6 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Models;
-using Models.Godot;
 using Righthand.GodotTscnParser.Engine.Grammar;
 
 [Generator]
@@ -48,6 +47,7 @@ public class UMLGenerator : IIncrementalGenerator
 	private void GenerateDiagram(SourceProductionContext context, GenerationData data)
 	{
 		Dictionary<string, BaseHierarchy> hierarchyList = [];
+		//Look at all TSCN's in the project which are marked as AdditionalFiles
 		foreach (var additionalText in data.TscnFiles)
 		{
 			var tscnContent = additionalText.GetText(context.CancellationToken)?.ToString();
@@ -60,6 +60,7 @@ public class UMLGenerator : IIncrementalGenerator
 			hierarchyList.Add(nodeHierarchy.Name, nodeHierarchy);
 		}
 
+		//Look at all TypedFiles
 		foreach (var syntaxContextGrouping in data.SyntaxContexts
 			         .Where(x => x.Node is ClassDeclarationSyntax)
 			         .GroupBy(x => x.SemanticModel.SyntaxTree.FilePath))
@@ -81,7 +82,7 @@ public class UMLGenerator : IIncrementalGenerator
 			hierarchy.GenerateHierarchy(hierarchyList);
 		}
 
-		var rootNodes = hierarchyList.Values.OfType<NodeHierarchy>().Where(x => x.IsRoot);
+		var rootNodes = hierarchyList.Values.Where(x => x.HasUMLAttribute());
 
 		foreach (var node in rootNodes)
 		{

@@ -10,7 +10,7 @@
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
         <IsRoslynComponent>true</IsRoslynComponent>
 
-        <RootNamespace>Chickensoft.DiagramGenerator</RootNamespace>
+        <RootNamespace>Chickensoft.UMLGenerator</RootNamespace>
         <PackageId>Chickensoft.UMLGenerator</PackageId>
     </PropertyGroup>
 

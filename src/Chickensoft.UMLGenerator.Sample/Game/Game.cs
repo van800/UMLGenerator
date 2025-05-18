@@ -3,8 +3,10 @@ namespace Chickensoft.UMLGenerator.Sample;
 using Chickensoft.AutoInject;
 using Chickensoft.Introspection;
 using Chickensoft.LogicBlocks;
+using Chickensoft.UMLGenerator;
 using Godot;
 
+[GenerateUML]
 [Meta(typeof(IAutoNode))]
 public partial class Game : Node, IProvide<IGameRepo>
 {

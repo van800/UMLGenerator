@@ -3,8 +3,18 @@ using Antlr4.Runtime.Misc;
 
 namespace Chickensoft.UMLGenerator;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 public static class Extensions
 {
+    public static int GetLineNumber(this MethodDeclarationSyntax method)
+    {
+        var source = method.SyntaxTree.ToString();
+        var subSource = source.Substring(0, method.SpanStart);
+        var lineNumber = subSource.Split('\n');
+        return lineNumber.Length;
+    }
+    
     public static string? ToPascalCase(this string? text)
     {
         if (text is null)
@@ -33,17 +43,5 @@ public static class Extensions
             }
         }
         return sb.ToString();
-    }
-    public static string GetSafeName(this string text)
-    {
-        return text.Replace(" ", "_");
-    }
-    public static void AppendLine(this StringBuilder sb, int offset, string value)
-    {
-        for (int i=0; i < offset; i++)
-        {
-            sb.Append('\t');
-        }
-        sb.AppendLine(value);
     }
 }

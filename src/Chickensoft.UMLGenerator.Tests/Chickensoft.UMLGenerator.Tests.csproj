@@ -6,7 +6,7 @@
 
         <IsPackable>false</IsPackable>
 
-        <RootNamespace>Chickensoft.DiagramGenerator.Tests</RootNamespace>
+        <RootNamespace>Chickensoft.UMLGenerator.Tests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

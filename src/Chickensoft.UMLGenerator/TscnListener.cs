@@ -75,9 +75,9 @@ public class TscnListener : TscnBaseListener
                         {
                             parent = RootNode;
                         }
-                        else if (!string.Equals(_lastNode?.FullName, parentPath, System.StringComparison.Ordinal))
+                        else if (!string.Equals(_lastNode?.FullName, parentPath, StringComparison.Ordinal))
                         {
-                            while (parent is not null && !string.Equals(parent.FullName, parentPath, System.StringComparison.Ordinal))
+                            while (parent is not null && !string.Equals(parent.FullName, parentPath, StringComparison.Ordinal))
                             {
                                 parent = parent.Parent;
                             }
@@ -133,21 +133,6 @@ public class TscnListener : TscnBaseListener
             }
         }
         return null;
-    }
-
-    ImmutableDictionary<string, string> ExtractSubResourceReferences(
-        ImmutableDictionary<string, ComplexValueContext> complexPairs)
-    {
-        var result = new Dictionary<string, string>();
-        var query = from cp in complexPairs
-            let srr = cp.Value.subResourceRef()
-            where srr is not null
-            select new
-            {
-                Name = cp.Key,
-                Value = srr.resourceRef().GetString(),
-            };
-        return query.ToImmutableDictionary(p => p.Name, p => p.Value);
     }
 
     public override void EnterExtResource([NotNull] ExtResourceContext context)
@@ -229,6 +214,6 @@ public static class ListenerExtensions
         {
             return terminal.Symbol.Text.Trim('\"');
         }
-        throw new System.Exception($"{context.GetText()} is not a STRING");
+        throw new Exception($"{context.GetText()} is not a STRING");
     }
 }

@@ -1,9 +1,10 @@
-namespace Chickensoft.UMLGenerator.Models.Godot;
+namespace Chickensoft.UMLGenerator.Models;
 
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 public class ClassHierarchy(IGrouping<string, GeneratorSyntaxContext> contextGrouping, IEnumerable<GeneratorSyntaxContext> syntaxContexts) : BaseHierarchy(syntaxContexts)
 {
