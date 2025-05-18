@@ -93,8 +93,9 @@ public class UMLGenerator : IIncrementalGenerator
 			@enduml
 			""";
 			
-			var fileName = node.FilePath + ".g.puml";
-			var destFile = Path.Combine(data.ProjectDir!, fileName);
+			var fileName = node.Name + ".g.puml";
+			var filePath = Path.Combine(Path.GetDirectoryName(node.FilePath) ?? string.Empty, fileName);
+			var destFile = Path.Combine(data.ProjectDir!, filePath);
 			
 			File.WriteAllText(destFile, source);
 		}
