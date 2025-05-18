@@ -1,17 +1,38 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <!-- Source generators must target netstandard 2.0 -->
         <TargetFramework>netstandard2.0</TargetFramework>
-        <IsPackable>false</IsPackable>
+        <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <LangVersion>latest</LangVersion>
-        <NoWarn>RS1035</NoWarn>
-
-        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-        <IsRoslynComponent>true</IsRoslynComponent>
-
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <LangVersion>preview</LangVersion>
         <RootNamespace>Chickensoft.UMLGenerator</RootNamespace>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <!-- RS1035: We're deliberately doing file output in an analyzer -->
+        <NoWarn>NU5128;RS1035</NoWarn>
+        <OutputPath>./nupkg</OutputPath>
+        <IsRoslynComponent>true</IsRoslynComponent>
+        <AnalyzerLanguage>cs</AnalyzerLanguage>
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <DebugType>portable</DebugType>
+
+        <Title>UML Generator</Title>
+        <Version>0.0.0-devbuild</Version>
+        <Description>See what your hierarchical state machine code looks like as a diagram!</Description>
+        <Authors>Bastani</Authors>
+        <Company>Bastani</Company>
+
         <PackageId>Chickensoft.UMLGenerator</PackageId>
+        <PackageReleaseNotes>UML Generator release.</PackageReleaseNotes>
+        <PackageIcon>icon.png</PackageIcon>
+        <PackageTags>State management;state machine;Godot;CSharp;C#;Chickensoft;Gamedev;Utility;Utilities;Source Generator;Generator;Godot 4;</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageProjectUrl>https://github.com/Bastani/UMLGenerator</PackageProjectUrl>
+
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>git@github.com:bastani/umlgenerator.git</RepositoryUrl>
     </PropertyGroup>
 
     <ItemGroup>
