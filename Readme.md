@@ -82,6 +82,7 @@ classDiagram
 ## 📚 Getting Started
 
 1. Install the UMLGenerator package
+2. Add `<AdditionalFiles Include="**/*.tscn"/>` so that all .tscn files within the project directory are found (may want to exclude addons)
 2. Add `[GenerateUML]` attribute to classes
 3. Build your project
 4. Open the generated `.g.puml` files
