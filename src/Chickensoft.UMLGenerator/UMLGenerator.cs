@@ -82,9 +82,9 @@ public class UMLGenerator : IIncrementalGenerator
 			hierarchy.GenerateHierarchy(hierarchyList);
 		}
 
-		var rootNodes = hierarchyList.Values.Where(x => x.HasUMLAttribute());
+		var nodesWithAttribute = hierarchyList.Values.Where(x => x.HasUMLAttribute());
 
-		foreach (var node in rootNodes)
+		foreach (var node in nodesWithAttribute)
 		{
 			var source =
 			$"""
@@ -93,7 +93,7 @@ public class UMLGenerator : IIncrementalGenerator
 			@enduml
 			""";
 			
-			var fileName = node.Name + ".g.puml";
+			var fileName = node.FilePath + ".g.puml";
 			var destFile = Path.Combine(data.ProjectDir!, fileName);
 			
 			File.WriteAllText(destFile, source);
