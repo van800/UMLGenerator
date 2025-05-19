@@ -8,8 +8,8 @@ using Microsoft.CodeAnalysis;
 public class NodeHierarchy(TscnListener listener, AdditionalText additionalText, GenerationData data) : BaseHierarchy(data)
 {
 	public Node? Node { get; } = listener.RootNode;
-	public override string? FilePath { get; } = additionalText.Path.Replace($"{data.ProjectDir}", "");
-	public override string? ScriptPath { get; } = listener.Script?.Path.Replace("res://", "");
+	public override string? FullFilePath { get; } = additionalText.Path;
+	public override string? FullScriptPath { get; } = data.ProjectDir + listener.Script?.Path.Replace("res://", "");
 
 	public override void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList)
 	{

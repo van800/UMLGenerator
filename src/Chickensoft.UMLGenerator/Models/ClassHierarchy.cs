@@ -8,8 +8,8 @@ using Microsoft.CodeAnalysis;
 public class ClassHierarchy(IGrouping<string, GeneratorSyntaxContext> contextGrouping, GenerationData data) : BaseHierarchy(data)
 {
 	public List<GeneratorSyntaxContext> ContextList { get; } = contextGrouping.ToList();
-	public override string FilePath => contextGrouping.Key.Replace($"{data.ProjectDir}", "");
-	public override string ScriptPath => FilePath;
+	public override string FullFilePath => contextGrouping.Key;
+	public override string FullScriptPath => FullFilePath;
 
 	public override void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList)
 	{

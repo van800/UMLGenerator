@@ -6,7 +6,7 @@ using Chickensoft.LogicBlocks;
 using Chickensoft.UMLGenerator;
 using Godot;
 
-[GenerateUML]
+[ClassDiagram(UseVSCodePaths = true)]
 [Meta(typeof(IAutoNode))]
 public partial class Game : Node, IProvide<IGameRepo>
 {

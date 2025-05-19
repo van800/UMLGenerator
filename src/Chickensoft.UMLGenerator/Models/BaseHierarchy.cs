@@ -22,8 +22,10 @@ public abstract class BaseHierarchy(GenerationData data)
 	public InterfaceDeclarationSyntax? InterfaceSyntax => LocalSyntaxContexts.Select(x => x.Node)
 		.FirstOrDefault(x => x is InterfaceDeclarationSyntax ctx && ctx.Identifier.Value?.ToString() == $"I{Name}") as InterfaceDeclarationSyntax;
 	
-	public abstract string FilePath { get; }
-	public abstract string ScriptPath { get; }
+	public string FilePath => FullFilePath.Replace($"{data.ProjectDir}", "");
+	public abstract string FullFilePath { get; }
+	public string ScriptPath => FullScriptPath.Replace($"{data.ProjectDir}", "");
+	public abstract string FullScriptPath { get; }
 	public string Name => Path.GetFileNameWithoutExtension(FilePath);
 	
 	private Dictionary<string, BaseHierarchy> _dictOfChildren = [];
@@ -35,22 +37,35 @@ public abstract class BaseHierarchy(GenerationData data)
 
 	public abstract void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList);
 
-	public string GetDiagram(int depth)
+	public string GetDiagram(int depth, bool useVSCodePaths)
 	{
-		var classDefinition = GetClassDefinition(depth);
-		var packageDefinition = GetPackageDefinition(depth);
+		var classDefinition = GetClassDefinition(depth, useVSCodePaths);
+		var packageDefinition = GetPackageDefinition(depth, useVSCodePaths);
 
 		return classDefinition + packageDefinition;
 	}
 
-	public bool HasUMLAttribute()
+	private AttributeSyntax? GetClassDiagramAttribute()
 	{
-		var attributes = LocalSyntaxContexts
-			.Select(x => (x.Node as TypeDeclarationSyntax).AttributeLists.SelectMany(x => x.Attributes))
-			.SelectMany(x => x);
+		var attributeName = nameof(ClassDiagramAttribute).TrimEnd("Attribute").ToString();
+		var classDiagramAttribute = LocalSyntaxContexts
+			.Select(x => (x.Node as TypeDeclarationSyntax)?.AttributeLists.SelectMany(x => x.Attributes))
+			.SelectMany(x => x)
+			.FirstOrDefault(x => x.Name.ToString() == attributeName);
 		
-		return attributes.Any(x => x.Name.ToString() == "GenerateUML");
+		return classDiagramAttribute;
 	}
+
+	public bool ShouldUseVSCode()
+	{
+		var attribute = GetClassDiagramAttribute();
+		return attribute?.ArgumentList?.Arguments.Any(arg =>
+			arg.NameEquals is NameEqualsSyntax nameEquals &&
+			nameEquals.Name.ToString() == nameof(ClassDiagramAttribute.UseVSCodePaths) &&
+			arg.Expression is LiteralExpressionSyntax { Token.ValueText: "true" }) ?? false;
+	}
+	
+	public bool HasClassDiagramAttribute() => GetClassDiagramAttribute() != null;
 
 	internal void AddChild(BaseHierarchy node)
 	{
@@ -103,13 +118,13 @@ public abstract class BaseHierarchy(GenerationData data)
 		return listOfChildContexts;
 	}
 
-	internal string GetClassDefinition(int depth)
+	internal string GetClassDefinition(int depth, bool useVSCodePaths)
 	{
 		if (string.IsNullOrEmpty(ScriptPath))
 			return string.Empty;
 		var interfaceMembersString = string.Empty;
 
-		var newScriptPath = GetPathWithDepth(ScriptPath, depth);
+		var newScriptPath = useVSCodePaths ? GetVSCodePath(FullScriptPath) : GetPathWithDepth(ScriptPath, depth);
 		
 		if(InterfaceSyntax != null)
 		{
@@ -138,16 +153,16 @@ public abstract class BaseHierarchy(GenerationData data)
 		""";
 	}
 	
-	internal string GetPackageDefinition(int depth)
+	internal string GetPackageDefinition(int depth, bool useVSCodePaths)
 	{
 		if (DictOfChildren.Count == 0)
 			return string.Empty;
 		
-		var newFilePath = GetPathWithDepth(FilePath, depth);
+		var newFilePath = useVSCodePaths ? GetVSCodePath(FullFilePath) : GetPathWithDepth(FilePath, depth);
 		
 		var childrenDefinitions = string.Join("\n\t",
 			DictOfChildren.Values.Select(x =>
-				x.GetDiagram(depth)
+				x.GetDiagram(depth, useVSCodePaths)
 			)
 		);
 
@@ -179,5 +194,10 @@ public abstract class BaseHierarchy(GenerationData data)
 	{
 		var depthString = string.Join("", Enumerable.Repeat("../", depth));
 		return depthString + path;
+	}
+
+	public string GetVSCodePath(string path)
+	{
+		return $"vscode://file{path}";
 	}
 }

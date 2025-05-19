@@ -82,7 +82,7 @@ public class UMLGenerator : IIncrementalGenerator
 			hierarchy.GenerateHierarchy(hierarchyList);
 		}
 
-		var nodesWithAttribute = hierarchyList.Values.Where(x => x.HasUMLAttribute());
+		var nodesWithAttribute = hierarchyList.Values.Where(x => x.HasClassDiagramAttribute());
 
 		foreach (var node in nodesWithAttribute)
 		{
@@ -90,11 +90,12 @@ public class UMLGenerator : IIncrementalGenerator
 			var filePath = Path.Combine(Path.GetDirectoryName(node.FilePath) ?? string.Empty, fileName);
 
 			var depth = filePath.Split('\\', '/').Length - 1;
+			var useVSCodePaths = node.ShouldUseVSCode();
 			
 			var source =
 			$"""
 			@startuml
-			{node.GetDiagram(depth)}
+			{node.GetDiagram(depth, useVSCodePaths)}
 			@enduml
 			""";
 			var destFile = Path.Combine(data.ProjectDir!, filePath);
