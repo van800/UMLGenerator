@@ -26,8 +26,8 @@ public class ClassHierarchy(IGrouping<string, GeneratorSyntaxContext> contextGro
 		}
 	}
 
-	public override string GetDiagram()
+	public override string GetDiagram(int depth)
 	{
-		return GetClassDefinition();
+		return GetClassDefinition(depth);
 	}
 }

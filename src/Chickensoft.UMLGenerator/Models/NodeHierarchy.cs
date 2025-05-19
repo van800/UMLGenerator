@@ -35,10 +35,10 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 		}
 	}
 
-	public override string GetDiagram()
+	public override string GetDiagram(int depth)
 	{
-		var classDefinition = GetClassDefinition();
-		var packageDefinition = GetPackageDefinition();
+		var classDefinition = GetClassDefinition(depth);
+		var packageDefinition = GetPackageDefinition(depth);
 
 		return classDefinition + packageDefinition;
 	}

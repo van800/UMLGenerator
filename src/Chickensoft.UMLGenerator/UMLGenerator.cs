@@ -86,15 +86,17 @@ public class UMLGenerator : IIncrementalGenerator
 
 		foreach (var node in nodesWithAttribute)
 		{
+			var fileName = node.Name + ".g.puml";
+			var filePath = Path.Combine(Path.GetDirectoryName(node.FilePath) ?? string.Empty, fileName);
+
+			var depth = filePath.Split('\\', '/').Length - 1;
+			
 			var source =
 			$"""
 			@startuml
-			{node.GetDiagram()}
+			{node.GetDiagram(depth)}
 			@enduml
 			""";
-			
-			var fileName = node.Name + ".g.puml";
-			var filePath = Path.Combine(Path.GetDirectoryName(node.FilePath) ?? string.Empty, fileName);
 			var destFile = Path.Combine(data.ProjectDir!, filePath);
 			
 			File.WriteAllText(destFile, source);

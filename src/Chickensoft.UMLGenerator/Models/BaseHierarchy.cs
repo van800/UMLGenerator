@@ -34,7 +34,7 @@ public abstract class BaseHierarchy(IEnumerable<GeneratorSyntaxContext> syntaxCo
 	public IReadOnlyDictionary<string, BaseHierarchy> DictOfParents => _dictOfParents;
 
 	public abstract void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList);
-	public abstract string GetDiagram();
+	public abstract string GetDiagram(int depth);
 
 	public bool HasUMLAttribute()
 	{
@@ -96,11 +96,13 @@ public abstract class BaseHierarchy(IEnumerable<GeneratorSyntaxContext> syntaxCo
 		return listOfChildContexts;
 	}
 
-	internal string GetClassDefinition()
+	internal string GetClassDefinition(int depth)
 	{
 		if (string.IsNullOrEmpty(ScriptPath))
 			return string.Empty;
 		var interfaceMembersString = string.Empty;
+
+		var newScriptPath = GetPathWithDepth(ScriptPath, depth);
 		
 		if(InterfaceSyntax != null)
 		{
@@ -114,7 +116,7 @@ public abstract class BaseHierarchy(IEnumerable<GeneratorSyntaxContext> syntaxCo
 
 			interfaceMembersString = "\n\t" + string.Join("\n\t",
 				classMethods.Select(x =>
-					$"[[{ScriptPath}:{x?.GetLineNumber()} {x?.Identifier.Value}()]]"
+					$"[[{newScriptPath}:{x?.GetLineNumber()} {x?.Identifier.Value}()]]"
 				)
 			);
 		}
@@ -123,20 +125,22 @@ public abstract class BaseHierarchy(IEnumerable<GeneratorSyntaxContext> syntaxCo
 		$$"""
 
 		class {{Name}} {
-			[[{{ScriptPath}} ScriptFile]]{{interfaceMembersString}}
+			[[{{newScriptPath}} ScriptFile]]{{interfaceMembersString}}
 		}
 
 		""";
 	}
 	
-	internal string GetPackageDefinition()
+	internal string GetPackageDefinition(int depth)
 	{
 		if (DictOfChildren.Count == 0)
-			return String.Empty;
+			return string.Empty;
+		
+		var newFilePath = GetPathWithDepth(FilePath, depth);
 		
 		var childrenDefinitions = string.Join("\n\t",
 			DictOfChildren.Values.Select(x =>
-				x.GetDiagram()
+				x.GetDiagram(depth)
 			)
 		);
 
@@ -149,11 +153,17 @@ public abstract class BaseHierarchy(IEnumerable<GeneratorSyntaxContext> syntaxCo
 		return 
 		$$"""
 
-		package {{Name}}Scene [[{{FilePath}}]] {
+		package {{Name}}Scene [[{{newFilePath}}]] {
 			{{childrenDefinitions}}
 			{{childrenRelationships}}
 		}
 
 		""";
+	}
+
+	public string GetPathWithDepth(string path, int depth)
+	{
+		var depthString = string.Join("", Enumerable.Repeat("../", depth));
+		return depthString + path;
 	}
 }
