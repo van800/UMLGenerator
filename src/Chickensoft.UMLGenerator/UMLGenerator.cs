@@ -56,7 +56,7 @@ public class UMLGenerator : IIncrementalGenerator
 
 			var listener = RunTscnBaseListener(tscnContent!, context.ReportDiagnostic, additionalText.Path);
 
-			var nodeHierarchy = new NodeHierarchy(listener, additionalText, data.SyntaxContexts);
+			var nodeHierarchy = new NodeHierarchy(listener, additionalText, data);
 			hierarchyList.Add(nodeHierarchy.Name, nodeHierarchy);
 		}
 
@@ -68,7 +68,7 @@ public class UMLGenerator : IIncrementalGenerator
 			var name = Path.GetFileNameWithoutExtension(syntaxContextGrouping.Key);
 			if (!hierarchyList.TryGetValue(name, out var nodeHierarchy))
 			{
-				var classHierarchy = new ClassHierarchy(syntaxContextGrouping, data.SyntaxContexts);
+				var classHierarchy = new ClassHierarchy(syntaxContextGrouping, data);
 				hierarchyList.Add(classHierarchy.Name, classHierarchy);
 			}
 			else

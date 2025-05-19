@@ -5,10 +5,10 @@ using System.IO;
 using Godot;
 using Microsoft.CodeAnalysis;
 
-public class NodeHierarchy(TscnListener listener, AdditionalText additionalText, IEnumerable<GeneratorSyntaxContext> syntaxContexts) : BaseHierarchy(syntaxContexts)
+public class NodeHierarchy(TscnListener listener, AdditionalText additionalText, GenerationData data) : BaseHierarchy(data)
 {
 	public Node? Node { get; } = listener.RootNode;
-	public override string? FilePath { get; } = additionalText.Path.Replace($"{Directory.GetCurrentDirectory()}/", "");
+	public override string? FilePath { get; } = additionalText.Path.Replace($"{data.ProjectDir}", "");
 	public override string? ScriptPath { get; } = listener.Script?.Path.Replace("res://", "");
 
 	public override void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList)
@@ -33,13 +33,5 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 			AddChild(childNodeHierarchy);
 			childNodeHierarchy.AddParent(this);
 		}
-	}
-
-	public override string GetDiagram(int depth)
-	{
-		var classDefinition = GetClassDefinition(depth);
-		var packageDefinition = GetPackageDefinition(depth);
-
-		return classDefinition + packageDefinition;
 	}
 }

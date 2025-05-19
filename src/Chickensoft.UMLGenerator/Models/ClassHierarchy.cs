@@ -4,12 +4,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-public class ClassHierarchy(IGrouping<string, GeneratorSyntaxContext> contextGrouping, IEnumerable<GeneratorSyntaxContext> syntaxContexts) : BaseHierarchy(syntaxContexts)
+public class ClassHierarchy(IGrouping<string, GeneratorSyntaxContext> contextGrouping, GenerationData data) : BaseHierarchy(data)
 {
 	public List<GeneratorSyntaxContext> ContextList { get; } = contextGrouping.ToList();
-	public override string FilePath => contextGrouping.Key.Replace($"{Directory.GetCurrentDirectory()}/", "");
+	public override string FilePath => contextGrouping.Key.Replace($"{data.ProjectDir}", "");
 	public override string ScriptPath => FilePath;
 
 	public override void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList)
@@ -24,10 +23,5 @@ public class ClassHierarchy(IGrouping<string, GeneratorSyntaxContext> contextGro
 			AddChild(childNodeHierarchy);
 			childNodeHierarchy.AddParent(this);
 		}
-	}
-
-	public override string GetDiagram(int depth)
-	{
-		return GetClassDefinition(depth);
 	}
 }

@@ -7,10 +7,10 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-public abstract class BaseHierarchy(IEnumerable<GeneratorSyntaxContext> syntaxContexts)
+public abstract class BaseHierarchy(GenerationData data)
 {
 	public IEnumerable<GeneratorSyntaxContext> LocalSyntaxContexts => 
-		syntaxContexts
+		data.SyntaxContexts
 			.Where(x =>
 			{
 				var sourceFileName = Path.GetFileNameWithoutExtension(x.Node.SyntaxTree.FilePath);
@@ -34,7 +34,14 @@ public abstract class BaseHierarchy(IEnumerable<GeneratorSyntaxContext> syntaxCo
 	public IReadOnlyDictionary<string, BaseHierarchy> DictOfParents => _dictOfParents;
 
 	public abstract void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList);
-	public abstract string GetDiagram(int depth);
+
+	public string GetDiagram(int depth)
+	{
+		var classDefinition = GetClassDefinition(depth);
+		var packageDefinition = GetPackageDefinition(depth);
+
+		return classDefinition + packageDefinition;
+	}
 
 	public bool HasUMLAttribute()
 	{
@@ -82,7 +89,7 @@ public abstract class BaseHierarchy(IEnumerable<GeneratorSyntaxContext> syntaxCo
 		foreach (var property in properties)
 		{
 			var type = property.Type.ToString();
-			var childContexts = syntaxContexts
+			var childContexts = data.SyntaxContexts
 				.Where(x =>
 				{
 					var typeSyntax = x.Node as TypeDeclarationSyntax;
@@ -149,11 +156,18 @@ public abstract class BaseHierarchy(IEnumerable<GeneratorSyntaxContext> syntaxCo
 				$"{Name} --> {x.Name}" //Todo: Add comments on arrows
 			)
 		);
+
+		var packageType = this switch
+		{
+			ClassHierarchy => "Class",
+			NodeHierarchy => "Scene",
+			_ => throw new NotImplementedException()
+		};
 			
 		return 
 		$$"""
 
-		package {{Name}}Scene [[{{newFilePath}}]] {
+		package {{Name}}-{{packageType}} [[{{newFilePath}}]] {
 			{{childrenDefinitions}}
 			{{childrenRelationships}}
 		}
