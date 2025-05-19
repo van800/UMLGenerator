@@ -7,20 +7,21 @@ using Microsoft.CodeAnalysis;
 
 public class NodeHierarchy(TscnListener listener, AdditionalText additionalText, IEnumerable<GeneratorSyntaxContext> syntaxContexts) : BaseHierarchy(syntaxContexts)
 {
-	public Node Node { get; } = listener.RootNode!;
-	public override string? FilePath { get; } = additionalText.Path.Replace(Directory.GetCurrentDirectory(), "");
-	public override string ScriptPath { get; } = listener.Script?.Path.Replace("res://", "");
+	public Node? Node { get; } = listener.RootNode;
+	public override string? FilePath { get; } = additionalText.Path.Replace($"{Directory.GetCurrentDirectory()}/", "");
+	public override string? ScriptPath { get; } = listener.Script?.Path.Replace("res://", "");
 
 	public override void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList)
 	{
-		foreach (var child in Node.AllChildren)
-		{
-			if (!nodeHierarchyList.TryGetValue(child.Name, out var childNodeHierarchy)) 
-				continue;
-			
-			AddChild(childNodeHierarchy);
-			childNodeHierarchy.AddParent(this);
-		}
+		if (Node?.AllChildren != null)
+			foreach (var child in Node.AllChildren)
+			{
+				if (!nodeHierarchyList.TryGetValue(child.Name, out var childNodeHierarchy))
+					continue;
+
+				AddChild(childNodeHierarchy);
+				childNodeHierarchy.AddParent(this);
+			}
 
 		var propertyDeclarations = GetPropertyDeclarations();
 		foreach (var ctx in propertyDeclarations)
@@ -37,7 +38,6 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 	public override string GetDiagram()
 	{
 		var classDefinition = GetClassDefinition();
-
 		var packageDefinition = GetPackageDefinition();
 
 		return classDefinition + packageDefinition;

@@ -9,8 +9,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 public class ClassHierarchy(IGrouping<string, GeneratorSyntaxContext> contextGrouping, IEnumerable<GeneratorSyntaxContext> syntaxContexts) : BaseHierarchy(syntaxContexts)
 {
 	public List<GeneratorSyntaxContext> ContextList { get; } = contextGrouping.ToList();
-	public override string FilePath => contextGrouping.Key;
-	public override string ScriptPath => FilePath.Replace(Directory.GetCurrentDirectory(), "");
+	public override string FilePath => contextGrouping.Key.Replace($"{Directory.GetCurrentDirectory()}/", "");
+	public override string ScriptPath => FilePath;
 
 	public override void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList)
 	{

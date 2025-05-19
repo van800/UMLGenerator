@@ -70,12 +70,15 @@ public abstract class BaseHierarchy(IEnumerable<GeneratorSyntaxContext> syntaxCo
 	{
 		var listOfChildContexts = new List<GeneratorSyntaxContext>();
 
+		if (ClassSyntax == null)
+			return listOfChildContexts;
+			
 		var properties = ClassSyntax
 			.Members.OfType<PropertyDeclarationSyntax>()
 			.Where(x => 
 				!x.AttributeLists.SelectMany(x => x.Attributes)
 					.Any(x => x.Name.ToString() == "Dependency"));
-		
+	
 		foreach (var property in properties)
 		{
 			var type = property.Type.ToString();
@@ -86,7 +89,7 @@ public abstract class BaseHierarchy(IEnumerable<GeneratorSyntaxContext> syntaxCo
 					var sourceFileName = typeSyntax?.Identifier.ValueText;
 					return sourceFileName == type && !DictOfChildren.ContainsKey(type);
 				});
-				
+			
 			listOfChildContexts.AddRange(childContexts);
 		}
 
