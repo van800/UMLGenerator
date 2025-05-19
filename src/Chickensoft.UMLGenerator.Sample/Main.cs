@@ -20,7 +20,6 @@ public partial class Main : Node2D
 
 	public override void _Ready()
 	{
-		var test = ConstructorInfo.GetCurrentMethod();
 		GetWindow().LookGood(WindowScaleBehavior.UIFixed, DesignResolution);
 #if DEBUG
 		// If this is a debug build, use GoDotTest to examine the
