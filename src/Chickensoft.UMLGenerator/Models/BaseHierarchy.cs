@@ -47,7 +47,7 @@ public abstract class BaseHierarchy(GenerationData data)
 
 	private AttributeSyntax? GetClassDiagramAttribute()
 	{
-		var attributeName = nameof(ClassDiagramAttribute).TrimEnd("Attribute").ToString();
+		var attributeName = nameof(ClassDiagramAttribute).Replace("Attribute", "");
 		var classDiagramAttribute = LocalSyntaxContexts
 			.Select(x => (x.Node as TypeDeclarationSyntax)?.AttributeLists.SelectMany(x => x.Attributes))
 			.SelectMany(x => x)
