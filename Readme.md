@@ -38,7 +38,7 @@ public interface IGame
     void SaveGame();
 }
     
-[GenerateUML] 
+[ClassDiagram(UseVSCodePaths = true)] 
 public class Game : Node, IGame 
 {
 	public IGameRepo GameRepo { get; set; } = null!;
@@ -83,9 +83,10 @@ classDiagram
 
 1. Install the UMLGenerator package
 2. Add `<AdditionalFiles Include="**/*.tscn"/>` so that all .tscn files within the project directory are found (may want to exclude addons)
-2. Add `[GenerateUML]` attribute to classes
-3. Build your project
-4. Open the generated `.g.puml` files
+3. Add `[ClassDiagram(UseVSCodePaths = true)]` attribute to classes. 
+    1. If you use Jetbrains Rider, either remove UseVSCodePaths, or set it to false
+4. Build your project
+5. Open the generated `.g.puml` files
 
 [chickensoft-badge]: https://chickensoft.games/img/badges/chickensoft_badge.svg
 [chickensoft-website]: https://chickensoft.games
