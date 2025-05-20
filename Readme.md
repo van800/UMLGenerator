@@ -27,7 +27,13 @@ The generated diagrams are placed alongside source files with the `*.g.puml` ext
 - **Integration with Godot.NET projects**
 - **Real-time visualization** via IDE plugins
 
-## 🧪 Example
+## 📚 Getting Started
+
+1. Install the UMLGenerator package from nuget
+2. (Optional) Add `<AdditionalFiles Include="**/*.tscn"/>` to the csproj so that all .tscn files within the project directory are found (may want to exclude addons)
+3. Add `[ClassDiagram(UseVSCodePaths = true)]` attribute to classes. 
+    1. If you use Jetbrains Rider, either remove UseVSCodePaths, or set it to false
+
 ```csharp
 using Chickensoft.UMLGenerator
     
@@ -47,6 +53,10 @@ public class Game : Node, IGame
     // ... (implementation details) 
 }
 ``` 
+
+4. Build your project
+5. Open the generated `.g.puml` files
+
 
 This would generate a PlantUML file showing:
 - Class relationships
@@ -78,15 +88,6 @@ classDiagram
   }
 
 ```
-
-## 📚 Getting Started
-
-1. Install the UMLGenerator package
-2. Add `<AdditionalFiles Include="**/*.tscn"/>` so that all .tscn files within the project directory are found (may want to exclude addons)
-3. Add `[ClassDiagram(UseVSCodePaths = true)]` attribute to classes. 
-    1. If you use Jetbrains Rider, either remove UseVSCodePaths, or set it to false
-4. Build your project
-5. Open the generated `.g.puml` files
 
 [chickensoft-badge]: https://chickensoft.games/img/badges/chickensoft_badge.svg
 [chickensoft-website]: https://chickensoft.games
