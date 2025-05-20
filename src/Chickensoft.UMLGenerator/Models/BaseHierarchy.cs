@@ -198,6 +198,6 @@ public abstract class BaseHierarchy(GenerationData data)
 
 	public string GetVSCodePath(string path)
 	{
-		return $"vscode://file{path}";
+		return $"vscode://file/{path}";
 	}
 }
