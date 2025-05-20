@@ -125,7 +125,7 @@ public abstract class BaseHierarchy(GenerationData data)
 
 		var childrenRelationships = string.Join("\n\t",
 			DictOfChildren.Values.Select(x =>
-					$"{Name} --> {x.Name}" //Todo: Add comments on arrows
+				$"{Name}::{x.Name} {(x.DictOfChildren.Count == 0 ? string.Empty : "-")}--> {x.Name}"
 			)
 		);
 
@@ -150,14 +150,34 @@ public abstract class BaseHierarchy(GenerationData data)
 
 	internal string GetClassDefinition(int depth, bool useVSCodePaths)
 	{
-		if (string.IsNullOrEmpty(ScriptPath))
-			return string.Empty;
-		var interfaceMembersString = string.Empty;
+		var hasScript = !string.IsNullOrEmpty(ScriptPath);
+		var filePath = hasScript ? ScriptPath : FilePath;
+		var fullFilePath = hasScript ? FullScriptPath : FullFilePath;
+		
+		var interfaceMethodsString = string.Empty;
+		var interfacePropertiesString = string.Empty;
 
-		var newScriptPath = useVSCodePaths ? GetVSCodePath(FullScriptPath) : GetPathWithDepth(ScriptPath, depth);
+		var newScriptPath = useVSCodePaths ? GetVSCodePath(fullFilePath) : GetPathWithDepth(filePath, depth);
 		
 		if(InterfaceSyntax != null)
 		{
+			var classProperties =
+				from interfaceMember in InterfaceSyntax.Members
+				from classMember in ClassSyntax.Members
+				where classMember is PropertyDeclarationSyntax classProperty &&
+				      interfaceMember is PropertyDeclarationSyntax interfaceProperty &&
+				      classProperty.Identifier.Value == interfaceProperty.Identifier.Value
+				select classMember as PropertyDeclarationSyntax;
+
+			interfacePropertiesString = string.Join("\n\t",
+				classProperties.Select(x =>
+					$"+ [[{newScriptPath}:{x?.GetLineNumber()} {x?.Identifier.Value}]]"
+				)
+			);
+
+			if (!string.IsNullOrWhiteSpace(interfacePropertiesString))
+				interfacePropertiesString = "\n--\n" + interfacePropertiesString;
+			
 			var classMethods = 
 				from interfaceMember in InterfaceSyntax.Members
 				from classMember in ClassSyntax.Members
@@ -166,18 +186,23 @@ public abstract class BaseHierarchy(GenerationData data)
 				      classMethod.Identifier.Value == interfaceMethod.Identifier.Value
 				select classMember as MethodDeclarationSyntax;
 
-			interfaceMembersString = "\n\t" + string.Join("\n\t",
+			interfaceMethodsString = string.Join("\n\t",
 				classMethods.Select(x =>
 					$"[[{newScriptPath}:{x?.GetLineNumber()} {x?.Identifier.Value}()]]"
 				)
 			);
+
+			if (!string.IsNullOrWhiteSpace(interfaceMethodsString))
+				interfaceMethodsString = "\n--\n" + interfaceMethodsString;
 		}
+		
+		var fileType = hasScript ? "Script" : "Scene";
 
 		return 
 		$$"""
 
 		class {{Name}} {
-			[[{{newScriptPath}} ScriptFile]]{{interfaceMembersString}}
+			[[{{newScriptPath}} {{fileType}}File]]{{interfacePropertiesString}}{{interfaceMethodsString}}
 		}
 
 		""";
