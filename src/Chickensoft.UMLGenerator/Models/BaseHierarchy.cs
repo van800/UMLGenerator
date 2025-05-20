@@ -2,6 +2,7 @@ namespace Chickensoft.UMLGenerator.Models;
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -112,8 +113,10 @@ public abstract class BaseHierarchy(GenerationData data)
 	
 	internal string GetDiagram(int depth, bool useVSCodePaths)
 	{
+		var classDefinition = GetClassDefinition(depth, useVSCodePaths, out var properties);
+		
 		if (DictOfChildren.Count == 0)
-			return GetClassDefinition(depth, useVSCodePaths);
+			return classDefinition;
 		
 		var newFilePath = useVSCodePaths ? GetVSCodePath(FullFilePath) : GetPathWithDepth(FilePath, depth);
 		
@@ -125,8 +128,10 @@ public abstract class BaseHierarchy(GenerationData data)
 
 		var childrenRelationships = string.Join("\n\t",
 			DictOfChildren.Values.Select(x =>
-				$"{Name}::{x.Name} {(x.DictOfChildren.Count == 0 ? string.Empty : "-")}--> {x.Name}"
-			)
+			{
+				var memberName = properties.FirstOrDefault(prop => prop.Value == x.Name || prop.Value == $"I{x.Name}" ).Key ?? x.Name;
+				return $"{Name}::{memberName} {(x.DictOfChildren.Count == 0 ? string.Empty : "-")}--> {x.Name}";
+			})
 		);
 
 		var packageType = this switch
@@ -140,7 +145,7 @@ public abstract class BaseHierarchy(GenerationData data)
 			$$"""
 
 			  package {{Name}}-{{packageType}} [[{{newFilePath}}]] {
-			  	{{GetClassDefinition(depth, useVSCodePaths)}}
+			  	{{classDefinition}}
 			  	{{childrenDefinitions}}
 			  	{{childrenRelationships}}
 			  }
@@ -148,8 +153,10 @@ public abstract class BaseHierarchy(GenerationData data)
 			  """;
 	}
 
-	internal string GetClassDefinition(int depth, bool useVSCodePaths)
+	private string GetClassDefinition(int depth, bool useVSCodePaths, out IDictionary<string,string> properties)
 	{
+		properties = ImmutableDictionary<string, string>.Empty;
+		
 		var hasScript = !string.IsNullOrEmpty(ScriptPath);
 		var filePath = hasScript ? ScriptPath : FilePath;
 		var fullFilePath = hasScript ? FullScriptPath : FullFilePath;
@@ -162,12 +169,14 @@ public abstract class BaseHierarchy(GenerationData data)
 		if(InterfaceSyntax != null)
 		{
 			var classProperties =
-				from interfaceMember in InterfaceSyntax.Members
+				(from interfaceMember in InterfaceSyntax.Members
 				from classMember in ClassSyntax.Members
 				where classMember is PropertyDeclarationSyntax classProperty &&
 				      interfaceMember is PropertyDeclarationSyntax interfaceProperty &&
 				      classProperty.Identifier.Value == interfaceProperty.Identifier.Value
-				select classMember as PropertyDeclarationSyntax;
+				select classMember as PropertyDeclarationSyntax).ToList();
+
+			properties = classProperties.ToDictionary(syntax => syntax.Identifier.Value!.ToString(), syntax => syntax.Type.ToString());
 
 			interfacePropertiesString = string.Join("\n\t",
 				classProperties.Select(x =>
