@@ -11,7 +11,7 @@ public class ClassHierarchy(IGrouping<string, GeneratorSyntaxContext> contextGro
 	public override string FullFilePath => contextGrouping.Key;
 	public override string FullScriptPath => FullFilePath;
 
-	public override void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList)
+	public override void GenerateHierarchy(IDictionary<string, BaseHierarchy> nodeHierarchyList)
 	{
 		var propertyDeclarations = GetPropertyDeclarations();
 		foreach (var ctx in propertyDeclarations)

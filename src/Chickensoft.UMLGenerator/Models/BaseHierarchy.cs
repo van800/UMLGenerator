@@ -35,15 +35,7 @@ public abstract class BaseHierarchy(GenerationData data)
 	public IReadOnlyDictionary<string, BaseHierarchy> DictOfChildren => _dictOfChildren;
 	public IReadOnlyDictionary<string, BaseHierarchy> DictOfParents => _dictOfParents;
 
-	public abstract void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList);
-
-	public string GetDiagram(int depth, bool useVSCodePaths)
-	{
-		var classDefinition = GetClassDefinition(depth, useVSCodePaths);
-		var packageDefinition = GetPackageDefinition(depth, useVSCodePaths);
-
-		return classDefinition + packageDefinition;
-	}
+	public abstract void GenerateHierarchy(IDictionary<string, BaseHierarchy> nodeHierarchyList);
 
 	private AttributeSyntax? GetClassDiagramAttribute()
 	{
@@ -117,6 +109,44 @@ public abstract class BaseHierarchy(GenerationData data)
 
 		return listOfChildContexts;
 	}
+	
+	internal string GetDiagram(int depth, bool useVSCodePaths)
+	{
+		if (DictOfChildren.Count == 0)
+			return GetClassDefinition(depth, useVSCodePaths);
+		
+		var newFilePath = useVSCodePaths ? GetVSCodePath(FullFilePath) : GetPathWithDepth(FilePath, depth);
+		
+		var childrenDefinitions = string.Join("\n\t",
+			DictOfChildren.Values.Select(x =>
+				x.GetDiagram(depth, useVSCodePaths)
+			)
+		);
+
+		var childrenRelationships = string.Join("\n\t",
+			DictOfChildren.Values.Select(x =>
+					$"{Name} --> {x.Name}" //Todo: Add comments on arrows
+			)
+		);
+
+		var packageType = this switch
+		{
+			ClassHierarchy => "Class",
+			NodeHierarchy => "Scene",
+			_ => throw new NotImplementedException()
+		};
+			
+		return 
+			$$"""
+
+			  package {{Name}}-{{packageType}} [[{{newFilePath}}]] {
+			  	{{GetClassDefinition(depth, useVSCodePaths)}}
+			  	{{childrenDefinitions}}
+			  	{{childrenRelationships}}
+			  }
+
+			  """;
+	}
 
 	internal string GetClassDefinition(int depth, bool useVSCodePaths)
 	{
@@ -148,43 +178,6 @@ public abstract class BaseHierarchy(GenerationData data)
 
 		class {{Name}} {
 			[[{{newScriptPath}} ScriptFile]]{{interfaceMembersString}}
-		}
-
-		""";
-	}
-	
-	internal string GetPackageDefinition(int depth, bool useVSCodePaths)
-	{
-		if (DictOfChildren.Count == 0)
-			return string.Empty;
-		
-		var newFilePath = useVSCodePaths ? GetVSCodePath(FullFilePath) : GetPathWithDepth(FilePath, depth);
-		
-		var childrenDefinitions = string.Join("\n\t",
-			DictOfChildren.Values.Select(x =>
-				x.GetDiagram(depth, useVSCodePaths)
-			)
-		);
-
-		var childrenRelationships = string.Join("\n\t",
-			DictOfChildren.Values.Select(x =>
-				$"{Name} --> {x.Name}" //Todo: Add comments on arrows
-			)
-		);
-
-		var packageType = this switch
-		{
-			ClassHierarchy => "Class",
-			NodeHierarchy => "Scene",
-			_ => throw new NotImplementedException()
-		};
-			
-		return 
-		$$"""
-
-		package {{Name}}-{{packageType}} [[{{newFilePath}}]] {
-			{{childrenDefinitions}}
-			{{childrenRelationships}}
 		}
 
 		""";

@@ -11,7 +11,7 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 	public override string? FullFilePath { get; } = additionalText.Path;
 	public override string? FullScriptPath { get; } = data.ProjectDir + listener.Script?.Path.Replace("res://", "");
 
-	public override void GenerateHierarchy(Dictionary<string, BaseHierarchy> nodeHierarchyList)
+	public override void GenerateHierarchy(IDictionary<string, BaseHierarchy> nodeHierarchyList)
 	{
 		if (Node?.AllChildren != null)
 			foreach (var child in Node.AllChildren)
