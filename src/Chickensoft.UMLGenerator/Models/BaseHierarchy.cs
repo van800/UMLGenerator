@@ -31,7 +31,7 @@ public abstract class BaseHierarchy(GenerationData data)
 
 	public virtual void GenerateHierarchy(IDictionary<string, BaseHierarchy> nodeHierarchyList)
 	{
-		var propertyDeclarations = GetPropertyDeclarations();
+		var propertyDeclarations = GetSyntaxContextForPropertyDeclarations();
 		foreach (var ctx in propertyDeclarations)
 		{
 			var className = Path.GetFileNameWithoutExtension(ctx.SemanticModel.SyntaxTree.FilePath);
@@ -86,7 +86,11 @@ public abstract class BaseHierarchy(GenerationData data)
 		ContextList.AddRange(list);
 	}
 
-	public IList<GeneratorSyntaxContext> GetPropertyDeclarations()
+	/// <summary>
+	/// Returns all SyntaxContexts for properties which don't have a Dependency attribute
+	/// </summary>
+	/// <returns></returns>
+	public IList<GeneratorSyntaxContext> GetSyntaxContextForPropertyDeclarations()
 	{
 		if (ClassSyntax == null)
 			return ImmutableList<GeneratorSyntaxContext>.Empty;
@@ -116,6 +120,10 @@ public abstract class BaseHierarchy(GenerationData data)
 		return listOfChildContexts;
 	}
 
+	/// <summary>
+	/// This will return class properties which exist in the interface
+	/// </summary>
+	/// <returns></returns>
 	public IEnumerable<PropertyDeclarationSyntax> GetInterfacePropertyDeclarations()
 	{
 		if (InterfaceSyntax == null) return [];
@@ -127,6 +135,10 @@ public abstract class BaseHierarchy(GenerationData data)
 			select classMember as PropertyDeclarationSyntax;
 	}
 	
+	/// <summary>
+	/// This will return class methods which exist in the interface
+	/// </summary>
+	/// <returns></returns>
 	public IEnumerable<MethodDeclarationSyntax> GetInterfaceMethodDeclarations()
 	{
 		if (InterfaceSyntax == null) return [];
@@ -202,11 +214,11 @@ public abstract class BaseHierarchy(GenerationData data)
 		
 		if(InterfaceSyntax != null)
 		{
-			var classProperties = GetInterfacePropertyDeclarations().ToList();
+			var classPropertiesFromInterface = GetInterfacePropertyDeclarations().ToList();
 			
 			properties = 
 				(from child in DictOfChildren
-				from prop in classProperties
+				from prop in classPropertiesFromInterface
 				where prop.Type.ToString() == child.Key || prop.Type.ToString() == $"I{child.Key}"
 				select (prop.Identifier.Value.ToString(), child.Value))
 				.ToDictionary(x => x.Item1, x => x.Value);
@@ -214,7 +226,7 @@ public abstract class BaseHierarchy(GenerationData data)
 			var insideProp = properties;
 
 			interfacePropertiesString = string.Join("\n\t",
-				classProperties.Select(x =>
+				classPropertiesFromInterface.Select(x =>
 				{
 					var propName = x?.Identifier.Value?.ToString();
 					var value = $"+ [[{newScriptPath}:{x?.GetLineNumber()} {propName}]]";
@@ -233,10 +245,10 @@ public abstract class BaseHierarchy(GenerationData data)
 			if (!string.IsNullOrWhiteSpace(interfacePropertiesString))
 				interfacePropertiesString = "\n--\n" + interfacePropertiesString;
 
-			var classMethods = GetInterfaceMethodDeclarations();
+			var classMethodsFromInterface = GetInterfaceMethodDeclarations();
 
 			interfaceMethodsString = string.Join("\n\t",
-				classMethods.Select(x =>
+				classMethodsFromInterface.Select(x =>
 					$"[[{newScriptPath}:{x?.GetLineNumber()} {x?.Identifier.Value}()]]"
 				)
 			);
