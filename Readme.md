@@ -1,4 +1,4 @@
-# 🧩 UMLGenerator
+# 🔀 UMLGenerator
 
 [![Chickensoft Badge][chickensoft-badge]][chickensoft-website] [![Discord][discord-badge]][discord] ![line coverage][line-coverage] ![branch coverage][branch-coverage]
 
