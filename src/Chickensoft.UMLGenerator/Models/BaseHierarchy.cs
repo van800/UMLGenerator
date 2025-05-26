@@ -199,9 +199,9 @@ public abstract class BaseHierarchy(GenerationData data)
 			  """;
 	}
 
-	private string GetTypeDefinition(int depth, bool useVSCodePaths, out IDictionary<string, BaseHierarchy> properties)
+	private string GetTypeDefinition(int depth, bool useVSCodePaths, out IDictionary<string, BaseHierarchy> children)
 	{
-		properties = ImmutableDictionary<string, BaseHierarchy>.Empty;
+		children = ImmutableDictionary<string, BaseHierarchy>.Empty;
 		
 		var hasScript = !string.IsNullOrEmpty(ScriptPath);
 		var filePath = hasScript ? ScriptPath : FilePath;
@@ -212,19 +212,51 @@ public abstract class BaseHierarchy(GenerationData data)
 
 		var newScriptPath = useVSCodePaths ? GetVSCodePath(fullFilePath) : GetPathWithDepth(filePath, depth);
 		
+		var classPropertiesFromInterface = GetInterfacePropertyDeclarations().ToList();
+		var allClassProperties = ClassSyntax?.Members.OfType<PropertyDeclarationSyntax>() ?? [];
+			
+		var props = 
+			from child in DictOfChildren
+			from prop in allClassProperties
+			where prop.Type.ToString() == child.Key || prop.Type.ToString() == $"I{child.Key}"
+			select (prop.Identifier.Value.ToString(), child.Value);
+
+		children =
+			(from child in DictOfChildren
+				join prop in props on child.Key equals prop.Value.Name into grouping
+				from prop in grouping.DefaultIfEmpty()
+				select (prop.Item1 ?? child.Key, child.Value))
+			.ToDictionary(x => x.Item1, x => x.Value);
+
+		var insideProp = children;
+			
+		var externalChildrenString = string.Join("\n\t",
+			children.Where(x => classPropertiesFromInterface
+					.All(y => y.Identifier.Value?.ToString() != x.Key))
+				.Select(x =>
+				{
+					var value = string.Empty;
+					var propName = x.Key;
+					var propertyDeclarationSyntax = ClassSyntax?
+						.Members
+						.OfType<PropertyDeclarationSyntax>()
+						.FirstOrDefault(x => x.Identifier.Value?.ToString() == propName);
+					
+					value = propertyDeclarationSyntax != null ? $"[[{newScriptPath}:{propertyDeclarationSyntax?.GetLineNumber()} {propName}]]" : propName;
+					
+					var scriptPath = useVSCodePaths ? GetVSCodePath(x.Value.FullScriptPath) : GetPathWithDepth(x.Value.ScriptPath, depth);
+					
+					var scriptDefinitions = $" - [[{scriptPath} Script]]";
+					
+					return value + scriptDefinitions;
+				})
+		);
+		
+		if (!string.IsNullOrWhiteSpace(externalChildrenString))
+			externalChildrenString = "\n--\n" + externalChildrenString;
+		
 		if(InterfaceSyntax != null)
 		{
-			var classPropertiesFromInterface = GetInterfacePropertyDeclarations().ToList();
-			
-			properties = 
-				(from child in DictOfChildren
-				from prop in classPropertiesFromInterface
-				where prop.Type.ToString() == child.Key || prop.Type.ToString() == $"I{child.Key}"
-				select (prop.Identifier.Value.ToString(), child.Value))
-				.ToDictionary(x => x.Item1, x => x.Value);
-
-			var insideProp = properties;
-
 			interfacePropertiesString = string.Join("\n\t",
 				classPropertiesFromInterface.Select(x =>
 				{
@@ -263,7 +295,7 @@ public abstract class BaseHierarchy(GenerationData data)
 		$$"""
 
 		class {{Name}} {
-			[[{{newScriptPath}} {{fileType}}File]]{{interfacePropertiesString}}{{interfaceMethodsString}}
+			[[{{newScriptPath}} {{fileType}}File]]{{interfacePropertiesString}}{{interfaceMethodsString}}{{externalChildrenString}}
 		}
 
 		""";
