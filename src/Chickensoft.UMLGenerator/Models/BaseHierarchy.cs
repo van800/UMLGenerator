@@ -132,6 +132,7 @@ public abstract class BaseHierarchy(GenerationData data)
 			where classMember is PropertyDeclarationSyntax classProperty &&
 			      interfaceMember is PropertyDeclarationSyntax interfaceProperty &&
 			      classProperty.Identifier.Value == interfaceProperty.Identifier.Value
+			orderby (classMember as PropertyDeclarationSyntax).Identifier.ValueText
 			select classMember as PropertyDeclarationSyntax;
 	}
 	
@@ -147,6 +148,7 @@ public abstract class BaseHierarchy(GenerationData data)
 			where classMember is MethodDeclarationSyntax classMethod &&
 			      interfaceMember is MethodDeclarationSyntax interfaceMethod &&
 			      classMethod.Identifier.Value == interfaceMethod.Identifier.Value
+			orderby (classMember as MethodDeclarationSyntax).Identifier.ValueText
 			select classMember as MethodDeclarationSyntax;
 	}
 	
@@ -225,6 +227,7 @@ public abstract class BaseHierarchy(GenerationData data)
 			(from child in DictOfChildren
 				join prop in props on child.Key equals prop.Value.Name into grouping
 				from prop in grouping.DefaultIfEmpty()
+				orderby prop.Item1, child.Key
 				select (prop.Item1 ?? child.Key, child.Value))
 			.ToDictionary(x => x.Item1, x => x.Value);
 
