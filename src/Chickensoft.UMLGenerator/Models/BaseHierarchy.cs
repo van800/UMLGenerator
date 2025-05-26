@@ -15,7 +15,7 @@ public abstract class BaseHierarchy(GenerationData data)
 	public ClassDeclarationSyntax? ClassSyntax => ContextList.Select(x => x.Node)
 		.FirstOrDefault(x => x is ClassDeclarationSyntax) as ClassDeclarationSyntax;
 	public InterfaceDeclarationSyntax? InterfaceSyntax => ContextList.Select(x => x.Node)
-		.FirstOrDefault(x => x is InterfaceDeclarationSyntax ctx && ctx.Identifier.Value?.ToString() == $"I{Name}") as InterfaceDeclarationSyntax;
+		.FirstOrDefault(x => x is InterfaceDeclarationSyntax ctx && ctx.Identifier.ValueText == $"I{Name}") as InterfaceDeclarationSyntax;
 	
 	public string FilePath => FullFilePath.Replace($"{data.ProjectDir}", "");
 	public abstract string FullFilePath { get; }
@@ -90,7 +90,7 @@ public abstract class BaseHierarchy(GenerationData data)
 	/// Returns all SyntaxContexts for properties which don't have a Dependency attribute
 	/// </summary>
 	/// <returns></returns>
-	public IList<GeneratorSyntaxContext> GetSyntaxContextForPropertyDeclarations()
+	private IList<GeneratorSyntaxContext> GetSyntaxContextForPropertyDeclarations()
 	{
 		if (ClassSyntax == null)
 			return ImmutableList<GeneratorSyntaxContext>.Empty;
@@ -124,7 +124,7 @@ public abstract class BaseHierarchy(GenerationData data)
 	/// This will return class properties which exist in the interface
 	/// </summary>
 	/// <returns></returns>
-	public IEnumerable<PropertyDeclarationSyntax> GetInterfacePropertyDeclarations()
+	private IEnumerable<PropertyDeclarationSyntax> GetInterfacePropertyDeclarations()
 	{
 		if (InterfaceSyntax == null) return [];
 		return from interfaceMember in InterfaceSyntax.Members
@@ -139,7 +139,7 @@ public abstract class BaseHierarchy(GenerationData data)
 	/// This will return class methods which exist in the interface
 	/// </summary>
 	/// <returns></returns>
-	public IEnumerable<MethodDeclarationSyntax> GetInterfaceMethodDeclarations()
+	private IEnumerable<MethodDeclarationSyntax> GetInterfaceMethodDeclarations()
 	{
 		if (InterfaceSyntax == null) return [];
 		return from interfaceMember in InterfaceSyntax!.Members
@@ -219,7 +219,7 @@ public abstract class BaseHierarchy(GenerationData data)
 			from child in DictOfChildren
 			from prop in allClassProperties
 			where prop.Type.ToString() == child.Key || prop.Type.ToString() == $"I{child.Key}"
-			select (prop.Identifier.Value.ToString(), child.Value);
+			select (prop.Identifier.ValueText, child.Value);
 
 		children =
 			(from child in DictOfChildren
@@ -232,21 +232,22 @@ public abstract class BaseHierarchy(GenerationData data)
 			
 		var externalChildrenString = string.Join("\n\t",
 			children.Where(x => classPropertiesFromInterface
-					.All(y => y.Identifier.Value?.ToString() != x.Key))
+					.All(y => y.Identifier.ValueText != x.Key))
 				.Select(x =>
 				{
-					var value = string.Empty;
+					var scriptDefinitions = string.Empty;
 					var propName = x.Key;
 					var propertyDeclarationSyntax = ClassSyntax?
 						.Members
 						.OfType<PropertyDeclarationSyntax>()
-						.FirstOrDefault(x => x.Identifier.Value?.ToString() == propName);
+						.FirstOrDefault(x => x.Identifier.ValueText == propName);
 					
-					value = propertyDeclarationSyntax != null ? $"[[{newScriptPath}:{propertyDeclarationSyntax?.GetLineNumber()} {propName}]]" : propName;
+					var value = propertyDeclarationSyntax != null ? $"[[{newScriptPath}:{propertyDeclarationSyntax.GetLineNumber()} {propName}]]" : propName;
 					
 					var scriptPath = useVSCodePaths ? GetVSCodePath(x.Value.FullScriptPath) : GetPathWithDepth(x.Value.ScriptPath, depth);
 					
-					var scriptDefinitions = $" - [[{scriptPath} Script]]";
+					if(!string.IsNullOrWhiteSpace(scriptPath))
+						scriptDefinitions = $" - [[{scriptPath} Script]]";
 					
 					return value + scriptDefinitions;
 				})
@@ -260,7 +261,7 @@ public abstract class BaseHierarchy(GenerationData data)
 			interfacePropertiesString = string.Join("\n\t",
 				classPropertiesFromInterface.Select(x =>
 				{
-					var propName = x?.Identifier.Value?.ToString();
+					var propName = x?.Identifier.ValueText;
 					var value = $"+ [[{newScriptPath}:{x?.GetLineNumber()} {propName}]]";
 					
 					if(!insideProp.TryGetValue(propName!, out var child))
@@ -301,14 +302,20 @@ public abstract class BaseHierarchy(GenerationData data)
 		""";
 	}
 
-	public string GetPathWithDepth(string path, int depth)
+	private string GetPathWithDepth(string path, int depth)
 	{
+		if (string.IsNullOrWhiteSpace(path)) 
+			return string.Empty;
+		
 		var depthString = string.Join("", Enumerable.Repeat("../", depth));
 		return depthString + path;
 	}
 
-	public string GetVSCodePath(string path)
+	private string GetVSCodePath(string path)
 	{
+		if (string.IsNullOrWhiteSpace(path)) 
+			return string.Empty;
+
 		return $"vscode://file/{path}";
 	}
 }
