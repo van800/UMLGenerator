@@ -7,17 +7,7 @@ using Microsoft.CodeAnalysis;
 
 public class GenerationData
 {
-	public GenerationData(ImmutableArray<AdditionalText> tscnFiles, ImmutableArray<GeneratorSyntaxContext> syntaxContexts, string projectDir)
-	{
-		ProjectDir = projectDir;
-		TscnFiles = tscnFiles;
-		SyntaxContexts = syntaxContexts
-			.Where(x => 
-				x.Node.SyntaxTree.FilePath.Contains(projectDir));
-	}
-
-	public ImmutableArray<AdditionalText>  TscnFiles { get; }
-	public IEnumerable<GeneratorSyntaxContext> SyntaxContexts { get; }
-	public string? ProjectDir { get; }
-	
+	public ImmutableArray<AdditionalText> TscnFiles { get; set; }
+	public IEnumerable<GeneratorSyntaxContext> SyntaxContexts { get; set; }
+	public string? ProjectDir { get; set; }
 }

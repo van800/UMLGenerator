@@ -23,15 +23,6 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 				childNodeHierarchy.AddParent(this);
 			}
 
-		var propertyDeclarations = GetPropertyDeclarations();
-		foreach (var ctx in propertyDeclarations)
-		{
-			var className = Path.GetFileNameWithoutExtension(ctx.SemanticModel.SyntaxTree.FilePath);
-			if (!nodeHierarchyList.TryGetValue(className, out var childNodeHierarchy)) 
-				continue;
-			
-			AddChild(childNodeHierarchy);
-			childNodeHierarchy.AddParent(this);
-		}
+		base.GenerateHierarchy(nodeHierarchyList);
 	}
 }

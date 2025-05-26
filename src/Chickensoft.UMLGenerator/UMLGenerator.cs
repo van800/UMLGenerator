@@ -21,11 +21,6 @@ public class UMLGenerator : IIncrementalGenerator
 			.Where(f => Path.GetExtension(f.Path).Equals(".tscn", StringComparison.OrdinalIgnoreCase))
 			.Collect();
 
-		var syntaxProvider = context.SyntaxProvider.CreateSyntaxProvider(
-			(node, _) => node is TypeDeclarationSyntax,
-			(syntaxContext, _) => syntaxContext
-		).Collect();
-
 		var projectDirProvider = context.AnalyzerConfigOptionsProvider
 			.Select((optionsProvider, _) =>
 			{
@@ -34,12 +29,25 @@ public class UMLGenerator : IIncrementalGenerator
 
 				return projectDir ?? Directory.GetCurrentDirectory();
 			});
+		
+		var syntaxProvider = context.SyntaxProvider.CreateSyntaxProvider(
+			(node, _) => node is TypeDeclarationSyntax,
+			(syntaxContext, _) => syntaxContext)
+			.Combine(projectDirProvider)
+			.Where((x) => x.Left.Node.SyntaxTree.FilePath.Contains(x.Right))
+			.Select((x, _) => x.Left)
+			.Collect();
 
 		var finalProvider = tscnProvider
 			.Combine(syntaxProvider)
 			.Combine(projectDirProvider)
 			.Select((x, _) => 
-				new GenerationData(x.Left.Left, x.Left.Right, x.Right)
+				new GenerationData
+				{
+					TscnFiles = x.Left.Left,
+					SyntaxContexts =  x.Left.Right,
+					ProjectDir = x.Right
+				}
 			);
 
 		context.RegisterImplementationSourceOutput(finalProvider, GenerateDiagram);
@@ -63,14 +71,13 @@ public class UMLGenerator : IIncrementalGenerator
 
 		//Look at all TypedFiles
 		foreach (var syntaxContextGrouping in data.SyntaxContexts
-			         .Where(x => x.Node is ClassDeclarationSyntax)
 			         .GroupBy(x => x.SemanticModel.SyntaxTree.FilePath))
 		{
 			var name = Path.GetFileNameWithoutExtension(syntaxContextGrouping.Key);
 			if (!hierarchyList.TryGetValue(name, out var nodeHierarchy))
 			{
 				var classHierarchy = new ClassHierarchy(syntaxContextGrouping, data);
-				hierarchyList.Add(classHierarchy.Name, classHierarchy);
+				hierarchyList.Add(name, classHierarchy);
 			}
 			else
 			{

@@ -10,17 +10,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 public abstract class BaseHierarchy(GenerationData data)
 {
-	public IEnumerable<GeneratorSyntaxContext> LocalSyntaxContexts => 
-		data.SyntaxContexts
-			.Where(x =>
-			{
-				var sourceFileName = Path.GetFileNameWithoutExtension(x.Node.SyntaxTree.FilePath);
-				return sourceFileName == Name;
-			});
+	public virtual List<GeneratorSyntaxContext> ContextList { get; } = [];
 	
-	public ClassDeclarationSyntax? ClassSyntax => LocalSyntaxContexts.Select(x => x.Node)
+	public ClassDeclarationSyntax? ClassSyntax => ContextList.Select(x => x.Node)
 		.FirstOrDefault(x => x is ClassDeclarationSyntax) as ClassDeclarationSyntax;
-	public InterfaceDeclarationSyntax? InterfaceSyntax => LocalSyntaxContexts.Select(x => x.Node)
+	public InterfaceDeclarationSyntax? InterfaceSyntax => ContextList.Select(x => x.Node)
 		.FirstOrDefault(x => x is InterfaceDeclarationSyntax ctx && ctx.Identifier.Value?.ToString() == $"I{Name}") as InterfaceDeclarationSyntax;
 	
 	public string FilePath => FullFilePath.Replace($"{data.ProjectDir}", "");
@@ -31,17 +25,28 @@ public abstract class BaseHierarchy(GenerationData data)
 	
 	private Dictionary<string, BaseHierarchy> _dictOfChildren = [];
 	private Dictionary<string, BaseHierarchy> _dictOfParents = [];
-	public virtual List<GeneratorSyntaxContext> ContextList { get; private set; }
 	
 	public IReadOnlyDictionary<string, BaseHierarchy> DictOfChildren => _dictOfChildren;
 	public IReadOnlyDictionary<string, BaseHierarchy> DictOfParents => _dictOfParents;
 
-	public abstract void GenerateHierarchy(IDictionary<string, BaseHierarchy> nodeHierarchyList);
+	public virtual void GenerateHierarchy(IDictionary<string, BaseHierarchy> nodeHierarchyList)
+	{
+		var propertyDeclarations = GetPropertyDeclarations();
+		foreach (var ctx in propertyDeclarations)
+		{
+			var className = Path.GetFileNameWithoutExtension(ctx.SemanticModel.SyntaxTree.FilePath);
+			if (!nodeHierarchyList.TryGetValue(className, out var childNodeHierarchy)) 
+				continue;
+			
+			AddChild(childNodeHierarchy);
+			childNodeHierarchy.AddParent(this);
+		}
+	}
 
 	private AttributeSyntax? GetClassDiagramAttribute()
 	{
 		var attributeName = nameof(ClassDiagramAttribute).Replace("Attribute", "");
-		var classDiagramAttribute = LocalSyntaxContexts
+		var classDiagramAttribute = ContextList
 			.Select(x => (x.Node as TypeDeclarationSyntax)?.AttributeLists.SelectMany(x => x.Attributes))
 			.SelectMany(x => x)
 			.FirstOrDefault(x => x.Name.ToString() == attributeName);
@@ -78,7 +83,7 @@ public abstract class BaseHierarchy(GenerationData data)
 
 	public void AddContextList(List<GeneratorSyntaxContext> list)
 	{
-		ContextList = list;
+		ContextList.AddRange(list);
 	}
 
 	public IList<GeneratorSyntaxContext> GetPropertyDeclarations()
@@ -135,7 +140,7 @@ public abstract class BaseHierarchy(GenerationData data)
 	
 	internal string GetDiagram(int depth, bool useVSCodePaths)
 	{
-		var classDefinition = GetClassDefinition(depth, useVSCodePaths, out var properties);
+		var classDefinition = GetTypeDefinition(depth, useVSCodePaths, out var properties);
 		
 		var childrenToDraw = DictOfChildren.Values
 			.Where(x => x.DictOfChildren.Count != 0 ||
@@ -182,7 +187,7 @@ public abstract class BaseHierarchy(GenerationData data)
 			  """;
 	}
 
-	private string GetClassDefinition(int depth, bool useVSCodePaths, out IDictionary<string, BaseHierarchy> properties)
+	private string GetTypeDefinition(int depth, bool useVSCodePaths, out IDictionary<string, BaseHierarchy> properties)
 	{
 		properties = ImmutableDictionary<string, BaseHierarchy>.Empty;
 		
