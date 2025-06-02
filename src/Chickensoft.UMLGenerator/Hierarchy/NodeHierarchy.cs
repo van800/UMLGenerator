@@ -16,7 +16,7 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 		if (Node?.AllChildren != null)
 			foreach (var child in Node.AllChildren)
 			{
-				if (!nodeHierarchyList.TryGetValue(child.Name, out var childNodeHierarchy))
+				if (!nodeHierarchyList.TryGetValue(child.Type, out var childNodeHierarchy))
 					continue;
 
 				AddChild(childNodeHierarchy);
