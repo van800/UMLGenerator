@@ -14,7 +14,7 @@ public abstract class BaseHierarchy(GenerationData data)
 	public virtual List<GeneratorSyntaxContext> ContextList { get; } = [];
 	
 	public TypeDeclarationSyntax? TypeSyntax => ContextList.Select(x => x.Node)
-		.FirstOrDefault(x => x is ClassDeclarationSyntax) as TypeDeclarationSyntax;
+		.FirstOrDefault(x => x is ClassDeclarationSyntax or RecordDeclarationSyntax or StructDeclarationSyntax) as TypeDeclarationSyntax;
 	public InterfaceDeclarationSyntax? InterfaceSyntax => ContextList.Select(x => x.Node)
 		.FirstOrDefault(x => x is InterfaceDeclarationSyntax ctx && ctx.Identifier.ValueText == $"I{Name}") as InterfaceDeclarationSyntax;
 	
