@@ -12,8 +12,8 @@ public abstract class BaseHierarchy(GenerationData data)
 {
 	public virtual List<GeneratorSyntaxContext> ContextList { get; } = [];
 	
-	public ClassDeclarationSyntax? ClassSyntax => ContextList.Select(x => x.Node)
-		.FirstOrDefault(x => x is ClassDeclarationSyntax) as ClassDeclarationSyntax;
+	public TypeDeclarationSyntax? TypeSyntax => ContextList.Select(x => x.Node)
+		.FirstOrDefault(x => x is ClassDeclarationSyntax or RecordDeclarationSyntax or StructDeclarationSyntax) as TypeDeclarationSyntax;
 	public InterfaceDeclarationSyntax? InterfaceSyntax => ContextList.Select(x => x.Node)
 		.FirstOrDefault(x => x is InterfaceDeclarationSyntax ctx && ctx.Identifier.ValueText == $"I{Name}") as InterfaceDeclarationSyntax;
 	
@@ -34,8 +34,8 @@ public abstract class BaseHierarchy(GenerationData data)
 		var propertyDeclarations = GetSyntaxContextForPropertyDeclarations();
 		foreach (var ctx in propertyDeclarations)
 		{
-			var className = Path.GetFileNameWithoutExtension(ctx.SemanticModel.SyntaxTree.FilePath);
-			if (!nodeHierarchyList.TryGetValue(className, out var childNodeHierarchy)) 
+			var typeName = Path.GetFileNameWithoutExtension(ctx.SemanticModel.SyntaxTree.FilePath);
+			if (!nodeHierarchyList.TryGetValue(typeName, out var childNodeHierarchy)) 
 				continue;
 			
 			AddChild(childNodeHierarchy);
@@ -92,12 +92,12 @@ public abstract class BaseHierarchy(GenerationData data)
 	/// <returns></returns>
 	private IList<GeneratorSyntaxContext> GetSyntaxContextForPropertyDeclarations()
 	{
-		if (ClassSyntax == null)
+		if (TypeSyntax == null)
 			return ImmutableList<GeneratorSyntaxContext>.Empty;
 		
 		var listOfChildContexts = new List<GeneratorSyntaxContext>();
 			
-		var properties = ClassSyntax
+		var properties = TypeSyntax
 			.Members.OfType<PropertyDeclarationSyntax>()
 			.Where(x => 
 				!x.AttributeLists.SelectMany(x => x.Attributes)
@@ -121,40 +121,40 @@ public abstract class BaseHierarchy(GenerationData data)
 	}
 
 	/// <summary>
-	/// This will return class properties which exist in the interface
+	/// This will return type properties which exist in the interface
 	/// </summary>
 	/// <returns></returns>
 	private IEnumerable<PropertyDeclarationSyntax> GetInterfacePropertyDeclarations()
 	{
 		if (InterfaceSyntax == null) return [];
 		return from interfaceMember in InterfaceSyntax.Members
-			from classMember in ClassSyntax.Members
-			where classMember is PropertyDeclarationSyntax classProperty &&
+			from typeMember in TypeSyntax.Members
+			where typeMember is PropertyDeclarationSyntax property &&
 			      interfaceMember is PropertyDeclarationSyntax interfaceProperty &&
-			      classProperty.Identifier.Value == interfaceProperty.Identifier.Value
-			orderby (classMember as PropertyDeclarationSyntax).Identifier.ValueText
-			select classMember as PropertyDeclarationSyntax;
+			      property.Identifier.Value == interfaceProperty.Identifier.Value
+			orderby (typeMember as PropertyDeclarationSyntax).Identifier.ValueText
+			select typeMember as PropertyDeclarationSyntax;
 	}
 	
 	/// <summary>
-	/// This will return class methods which exist in the interface
+	/// This will return type methods which exist in the interface
 	/// </summary>
 	/// <returns></returns>
 	private IEnumerable<MethodDeclarationSyntax> GetInterfaceMethodDeclarations()
 	{
 		if (InterfaceSyntax == null) return [];
 		return from interfaceMember in InterfaceSyntax!.Members
-			from classMember in ClassSyntax.Members
-			where classMember is MethodDeclarationSyntax classMethod &&
+			from typeMember in TypeSyntax.Members
+			where typeMember is MethodDeclarationSyntax typeMethod &&
 			      interfaceMember is MethodDeclarationSyntax interfaceMethod &&
-			      classMethod.Identifier.Value == interfaceMethod.Identifier.Value
-			orderby (classMember as MethodDeclarationSyntax).Identifier.ValueText
-			select classMember as MethodDeclarationSyntax;
+			      typeMethod.Identifier.Value == interfaceMethod.Identifier.Value
+			orderby (typeMember as MethodDeclarationSyntax).Identifier.ValueText
+			select typeMember as MethodDeclarationSyntax;
 	}
 	
 	internal string GetDiagram(int depth, bool useVSCodePaths)
 	{
-		var classDefinition = GetTypeDefinition(depth, useVSCodePaths, out var properties);
+		var typeDefinition = GetTypeDefinition(depth, useVSCodePaths, out var properties);
 		
 		var childrenToDraw = DictOfChildren.Values
 			.Where(x => x.DictOfChildren.Count != 0 ||
@@ -164,7 +164,7 @@ public abstract class BaseHierarchy(GenerationData data)
 			).ToList();
 		
 		if (childrenToDraw.Count == 0)
-			return classDefinition;
+			return typeDefinition;
 		
 		var newFilePath = useVSCodePaths ? GetVSCodePath(FullFilePath) : GetPathWithDepth(FilePath, depth);
 		
@@ -190,7 +190,7 @@ public abstract class BaseHierarchy(GenerationData data)
 
 		var packageType = this switch
 		{
-			ClassHierarchy => "Class",
+			TypeHierarchy => "Type",
 			NodeHierarchy => "Scene",
 			_ => throw new NotImplementedException()
 		};
@@ -199,7 +199,7 @@ public abstract class BaseHierarchy(GenerationData data)
 			$$"""
 
 			  package {{Name}}-{{packageType}} [[{{newFilePath}}]] {
-			  	{{classDefinition}}
+			  	{{typeDefinition}}
 			  	{{childrenDefinitions}}
 			  	{{childrenRelationships}}
 			  }
@@ -220,12 +220,12 @@ public abstract class BaseHierarchy(GenerationData data)
 
 		var newScriptPath = useVSCodePaths ? GetVSCodePath(fullFilePath) : GetPathWithDepth(filePath, depth);
 		
-		var classPropertiesFromInterface = GetInterfacePropertyDeclarations().ToList();
-		var allClassProperties = ClassSyntax?.Members.OfType<PropertyDeclarationSyntax>() ?? [];
+		var propertiesFromInterface = GetInterfacePropertyDeclarations().ToList();
+		var allProperties = TypeSyntax?.Members.OfType<PropertyDeclarationSyntax>() ?? [];
 			
 		var props = 
 			from child in DictOfChildren
-			from prop in allClassProperties
+			from prop in allProperties
 			where prop.Type.ToString() == child.Key || prop.Type.ToString() == $"I{child.Key}"
 			select (prop.Identifier.ValueText, child.Value);
 
@@ -240,7 +240,7 @@ public abstract class BaseHierarchy(GenerationData data)
 		var insideProp = children;
 			
 		var externalChildrenString = string.Join("\n\t",
-			children.Where(x => classPropertiesFromInterface
+			children.Where(x => propertiesFromInterface
 					.All(y => y.Identifier.ValueText != x.Key))
 				.Select(x =>
 				{
@@ -257,7 +257,7 @@ public abstract class BaseHierarchy(GenerationData data)
 						GetVSCodePath(fullFilePath) : 
 						GetPathWithDepth(filePath, depth);
 					
-					var propertyDeclarationSyntax = ClassSyntax?
+					var propertyDeclarationSyntax = TypeSyntax?
 						.Members
 						.OfType<PropertyDeclarationSyntax>()
 						.FirstOrDefault(x => x.Identifier.ValueText == propName);
@@ -291,7 +291,7 @@ public abstract class BaseHierarchy(GenerationData data)
 		if(InterfaceSyntax != null)
 		{
 			interfacePropertiesString = string.Join("\n\t",
-				classPropertiesFromInterface.Select(x =>
+				propertiesFromInterface.Select(x =>
 				{
 					var propName = x?.Identifier.ValueText;
 					var value = $"+ [[{newScriptPath}:{x?.GetLineNumber()} {propName}]]";
@@ -310,10 +310,10 @@ public abstract class BaseHierarchy(GenerationData data)
 			if (!string.IsNullOrWhiteSpace(interfacePropertiesString))
 				interfacePropertiesString = "\n--\n" + interfacePropertiesString;
 
-			var classMethodsFromInterface = GetInterfaceMethodDeclarations();
+			var methodsFromInterface = GetInterfaceMethodDeclarations();
 
 			interfaceMethodsString = string.Join("\n\t",
-				classMethodsFromInterface.Select(x =>
+				methodsFromInterface.Select(x =>
 					$"[[{newScriptPath}:{x?.GetLineNumber()} {x?.Identifier.Value}()]]"
 				)
 			);

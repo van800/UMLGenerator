@@ -76,8 +76,8 @@ public class UMLGenerator : IIncrementalGenerator
 			var name = Path.GetFileNameWithoutExtension(syntaxContextGrouping.Key);
 			if (!hierarchyList.TryGetValue(name, out var nodeHierarchy))
 			{
-				var classHierarchy = new ClassHierarchy(syntaxContextGrouping, data);
-				hierarchyList.Add(name, classHierarchy);
+				var typeHierarchy = new TypeHierarchy(syntaxContextGrouping, data);
+				hierarchyList.Add(name, typeHierarchy);
 			}
 			else
 			{
