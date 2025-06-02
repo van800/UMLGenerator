@@ -98,7 +98,7 @@ public class TscnListener : TscnBaseListener
                                     DiagnosticSeverity.Warning, true), null));
                         }
                     }
-                    else if (script is not null)
+                    else
                     {
                         RootNode = _lastNode = new Node(name!, type!, null, null, groups);
                         Script = script;
