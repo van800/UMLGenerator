@@ -324,10 +324,12 @@ public abstract class BaseHierarchy(GenerationData data)
 		
 		var fileType = hasScript ? "Script" : "Scene";
 
+		var spotCharacter = hasScript ? "" : "<< (S,black) >>";
+
 		return 
 		$$"""
 
-		class {{Name}} {
+		class {{Name}} {{spotCharacter}} {
 			[[{{newScriptPath}} {{fileType}}File]]{{interfacePropertiesString}}{{interfaceMethodsString}}{{externalChildrenString}}
 		}
 
