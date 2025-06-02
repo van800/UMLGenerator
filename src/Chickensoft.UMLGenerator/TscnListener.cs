@@ -84,7 +84,7 @@ public class TscnListener : TscnBaseListener
                         }
                         if (parent is not null)
                         {
-                            _lastNode = new Node(name!, type!, parent, parentPath, groups);
+                            _lastNode = new Node(name!, type!, parent, parentPath, script, groups);
                             parent.Children.Add(_lastNode);
                         }
                         else
@@ -100,7 +100,7 @@ public class TscnListener : TscnBaseListener
                     }
                     else
                     {
-                        RootNode = _lastNode = new Node(name!, type!, null, null, groups);
+                        RootNode = _lastNode = new Node(name!, type!, null, null, script, groups: groups);
                         Script = script;
                     }
                 }

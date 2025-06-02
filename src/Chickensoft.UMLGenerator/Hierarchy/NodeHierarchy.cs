@@ -14,13 +14,13 @@ public class NodeHierarchy(TscnListener listener, AdditionalText additionalText,
 	public override void GenerateHierarchy(IDictionary<string, BaseHierarchy> nodeHierarchyList)
 	{
 		if (Node?.AllChildren != null)
-			foreach (var child in Node.AllChildren)
+			foreach (var nodeDefinition in Node.AllChildren)
 			{
-				if (!nodeHierarchyList.TryGetValue(child.Type, out var childNodeHierarchy))
+				if (!nodeHierarchyList.TryGetValue(nodeDefinition.Type, out var childNodeHierarchy))
 					continue;
 
 				AddChild(childNodeHierarchy);
-				childNodeHierarchy.AddParent(this);
+				childNodeHierarchy.AddParent(this, nodeDefinition);
 			}
 
 		base.GenerateHierarchy(nodeHierarchyList);

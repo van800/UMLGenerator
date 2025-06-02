@@ -14,8 +14,9 @@ public class Node
     public HashSet<string> Groups { get; }
     public Node? Parent {  get; }
     public List<Node> Children { get; }
+    public Script? Script { get; }
     public Node(string name, string type, Node? parent, string? parentPath,
-        HashSet<string>? groups = null)
+        Script? script, HashSet<string>? groups = null)
     {
         Name = name;
         Type = type;
@@ -23,6 +24,7 @@ public class Node
         ParentPath = parentPath;
         Groups = groups ?? new HashSet<string>();
         Children= new List<Node>();
+        Script = script;
     }
 
     public string FullName => !string.IsNullOrWhiteSpace(ParentPath) && ParentPath != "."

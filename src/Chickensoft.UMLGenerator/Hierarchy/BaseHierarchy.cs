@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using Godot;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -13,7 +14,7 @@ public abstract class BaseHierarchy(GenerationData data)
 	public virtual List<GeneratorSyntaxContext> ContextList { get; } = [];
 	
 	public TypeDeclarationSyntax? TypeSyntax => ContextList.Select(x => x.Node)
-		.FirstOrDefault(x => x is ClassDeclarationSyntax or RecordDeclarationSyntax or StructDeclarationSyntax) as TypeDeclarationSyntax;
+		.FirstOrDefault(x => x is ClassDeclarationSyntax) as TypeDeclarationSyntax;
 	public InterfaceDeclarationSyntax? InterfaceSyntax => ContextList.Select(x => x.Node)
 		.FirstOrDefault(x => x is InterfaceDeclarationSyntax ctx && ctx.Identifier.ValueText == $"I{Name}") as InterfaceDeclarationSyntax;
 	
@@ -21,6 +22,8 @@ public abstract class BaseHierarchy(GenerationData data)
 	public abstract string FullFilePath { get; }
 	public string ScriptPath => FullScriptPath.Replace($"{data.ProjectDir}", "");
 	public abstract string FullScriptPath { get; }
+	public string ScriptPathFromParent => FullScriptPathFromParent?.Replace($"{data.ProjectDir}", "") ?? "";
+	public string FullScriptPathFromParent { get; private set; } = null!;
 	public string Name => Path.GetFileNameWithoutExtension(FilePath);
 	
 	private Dictionary<string, BaseHierarchy> _dictOfChildren = [];
@@ -73,10 +76,17 @@ public abstract class BaseHierarchy(GenerationData data)
 			Console.WriteLine($"Found duplicate {node.Name} in {Name}");
 	}
 
-	internal void AddParent(BaseHierarchy node)
+	internal void AddParent(BaseHierarchy node, Node? nodeDefinition = null)
 	{
-		if(!_dictOfParents.ContainsKey(node.Name))
+		if (!_dictOfParents.ContainsKey(node.Name))
+		{
 			_dictOfParents.Add(node.Name, node);
+			if (!string.IsNullOrEmpty(nodeDefinition?.Script?.Path))
+			{
+				var scriptPath = nodeDefinition!.Script!.Path.Replace("res://", "");;
+				FullScriptPathFromParent = data.ProjectDir + scriptPath;
+			}
+		}
 		else
 			Console.WriteLine($"Found duplicate {node.Name} in {Name}");
 	}
@@ -211,14 +221,10 @@ public abstract class BaseHierarchy(GenerationData data)
 	{
 		children = ImmutableDictionary<string, BaseHierarchy>.Empty;
 		
-		var hasScript = !string.IsNullOrEmpty(ScriptPath);
-		var filePath = hasScript ? ScriptPath : FilePath;
-		var fullFilePath = hasScript ? FullScriptPath : FullFilePath;
-		
 		var interfaceMethodsString = string.Empty;
 		var interfacePropertiesString = string.Empty;
 
-		var newScriptPath = useVSCodePaths ? GetVSCodePath(fullFilePath) : GetPathWithDepth(filePath, depth);
+		var newScriptPath = GetScriptPath(useVSCodePaths, depth, out var hasScript);
 		
 		var propertiesFromInterface = GetInterfacePropertyDeclarations().ToList();
 		var allProperties = TypeSyntax?.Members.OfType<PropertyDeclarationSyntax>() ?? [];
@@ -247,15 +253,8 @@ public abstract class BaseHierarchy(GenerationData data)
 					var scriptDefinitions = string.Empty;
 					var propName = x.Key;
 					var value = string.Empty;
-					var scriptPath = string.Empty;
-					
-					var hasScript = !string.IsNullOrEmpty(x.Value.ScriptPath);
-					var filePath = hasScript ? x.Value.ScriptPath : x.Value.FilePath;
-					var fullFilePath = hasScript ? x.Value.FullScriptPath : x.Value.FullFilePath;
-					
-					scriptPath = useVSCodePaths ? 
-						GetVSCodePath(fullFilePath) : 
-						GetPathWithDepth(filePath, depth);
+
+					var scriptPath = x.Value.GetScriptPath(useVSCodePaths, depth, out var hasScript);
 					
 					var propertyDeclarationSyntax = TypeSyntax?
 						.Members
@@ -336,7 +335,35 @@ public abstract class BaseHierarchy(GenerationData data)
 		""";
 	}
 
-	private string GetPathWithDepth(string path, int depth)
+	private string GetScriptPath(bool useVSCodePaths, int depth, out bool hasScript)
+	{
+		hasScript = !string.IsNullOrEmpty(ScriptPath) || !string.IsNullOrEmpty(ScriptPathFromParent);
+		string filePath;
+		string fullFilePath;
+		
+		if (hasScript)
+		{
+			if (!string.IsNullOrEmpty(ScriptPath))
+			{
+				filePath = ScriptPath;
+				fullFilePath = FullScriptPath;
+			}
+			else
+			{
+				filePath = ScriptPathFromParent;
+				fullFilePath = FullScriptPathFromParent;
+			}
+		}
+		else
+		{
+			filePath = FilePath;
+			fullFilePath =  FullFilePath;
+		}
+
+		return useVSCodePaths ? GetVSCodePath(fullFilePath) : GetPathWithDepth(filePath, depth);
+	}
+	
+	public string GetPathWithDepth(string path, int depth)
 	{
 		if (string.IsNullOrWhiteSpace(path)) 
 			return string.Empty;
