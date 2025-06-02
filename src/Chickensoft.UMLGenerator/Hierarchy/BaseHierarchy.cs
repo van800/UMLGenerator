@@ -247,6 +247,15 @@ public abstract class BaseHierarchy(GenerationData data)
 					var scriptDefinitions = string.Empty;
 					var propName = x.Key;
 					var value = string.Empty;
+					var scriptPath = string.Empty;
+					
+					var hasScript = !string.IsNullOrEmpty(x.Value.ScriptPath);
+					var filePath = hasScript ? x.Value.ScriptPath : x.Value.FilePath;
+					var fullFilePath = hasScript ? x.Value.FullScriptPath : x.Value.FullFilePath;
+					
+					scriptPath = useVSCodePaths ? 
+						GetVSCodePath(fullFilePath) : 
+						GetPathWithDepth(filePath, depth);
 					
 					var propertyDeclarationSyntax = ClassSyntax?
 						.Members
@@ -267,12 +276,10 @@ public abstract class BaseHierarchy(GenerationData data)
 					if(string.IsNullOrEmpty(value))
 						value = propName;
 					
-					var scriptPath = useVSCodePaths ? 
-						GetVSCodePath(x.Value.FullScriptPath) : 
-						GetPathWithDepth(x.Value.ScriptPath, depth);
+					var fileType = hasScript ? "Script" : "Scene";
 					
 					if(!string.IsNullOrWhiteSpace(scriptPath))
-						scriptDefinitions = $" - [[{scriptPath} Script]]";
+						scriptDefinitions = $" - [[{scriptPath} {fileType}]]";
 					
 					return value + scriptDefinitions;
 				})
