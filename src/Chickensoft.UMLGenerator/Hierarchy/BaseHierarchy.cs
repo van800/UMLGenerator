@@ -177,7 +177,13 @@ public abstract class BaseHierarchy(GenerationData data)
 		var childrenRelationships = string.Join("\n\t",
 			childrenToDraw.Select(x =>
 			{
-				var memberName = properties.FirstOrDefault(prop => x == prop.Value).Key ?? x.Name;
+				var memberName = (this as NodeHierarchy)?
+				                 .Node?
+				                 .AllChildren
+				                 .FirstOrDefault(node => node.Type == x.Name)?.Name
+				                 ?? properties.FirstOrDefault(prop => x == prop.Value).Key 
+				                 ?? x.Name;
+				
 				return $"{Name}::{memberName} {(x.DictOfChildren.Count == 0 ? string.Empty : "-")}--> {x.Name}";
 			})
 		);
@@ -240,14 +246,30 @@ public abstract class BaseHierarchy(GenerationData data)
 				{
 					var scriptDefinitions = string.Empty;
 					var propName = x.Key;
+					var value = string.Empty;
+					
 					var propertyDeclarationSyntax = ClassSyntax?
 						.Members
 						.OfType<PropertyDeclarationSyntax>()
 						.FirstOrDefault(x => x.Identifier.ValueText == propName);
 					
-					var value = propertyDeclarationSyntax != null ? $"[[{newScriptPath}:{propertyDeclarationSyntax.GetLineNumber()} {propName}]]" : propName;
+					//Get direct link to property declaration
+					if (propertyDeclarationSyntax != null)
+						value = $"[[{newScriptPath}:{propertyDeclarationSyntax.GetLineNumber()} {propName}]]";
+					else if (this is NodeHierarchy nodeHierarchy)
+					{
+						value = nodeHierarchy
+							.Node?
+							.AllChildren
+							.FirstOrDefault(node => node.Type == propName)?.Name;
+					}
 					
-					var scriptPath = useVSCodePaths ? GetVSCodePath(x.Value.FullScriptPath) : GetPathWithDepth(x.Value.ScriptPath, depth);
+					if(string.IsNullOrEmpty(value))
+						value = propName;
+					
+					var scriptPath = useVSCodePaths ? 
+						GetVSCodePath(x.Value.FullScriptPath) : 
+						GetPathWithDepth(x.Value.ScriptPath, depth);
 					
 					if(!string.IsNullOrWhiteSpace(scriptPath))
 						scriptDefinitions = $" - [[{scriptPath} Script]]";
