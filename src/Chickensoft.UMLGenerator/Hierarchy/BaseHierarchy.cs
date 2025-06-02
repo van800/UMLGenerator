@@ -44,6 +44,20 @@ public abstract class BaseHierarchy(GenerationData data)
 			AddChild(childNodeHierarchy);
 			childNodeHierarchy.AddParent(this);
 		}
+
+		var parameterList = TypeSyntax?.ParameterList?.Parameters ?? Enumerable.Empty<ParameterSyntax>();
+		foreach (var ctx in parameterList)
+		{
+			var typeName = ctx.Type?.ToFullString().Trim();
+			var typeWithoutInterface = ctx.Type?.ToFullString().TrimStart('I').Trim();
+			BaseHierarchy? childNodeHierarchy;
+			if (!nodeHierarchyList.TryGetValue(typeName, out childNodeHierarchy) && 
+			    !nodeHierarchyList.TryGetValue(typeWithoutInterface, out childNodeHierarchy)) 
+				continue;
+			
+			AddChild(childNodeHierarchy);
+			childNodeHierarchy.AddParent(this);
+		}
 	}
 
 	private AttributeSyntax? GetClassDiagramAttribute()
